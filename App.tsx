@@ -1,20 +1,27 @@
-import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, Text, View } from 'react-native';
+import React from 'react';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { NavigationContainer } from '@react-navigation/native';
+import MatchSeriesScreen from './screens/MatchSeriesScreen';
+import SeriesWiseMatchScreen from './screens/SeriesWiseMatchScreen';
+import { RootStackParamList } from './types'; // Import stack type
+import AddMatchScreen from './screens/AddMatchScreen';
+import SelectTeamScreen from './screens/SelectTeam';
+import AfterSelectAddMatchDetailsScreen from './screens/AfterSelectAddMatchDetailsScreen';
 
-export default function App() {
+const Stack = createNativeStackNavigator<RootStackParamList>(); // ✅ Type the navigator
+
+const App = () => {
   return (
-    <View style={styles.container}>
-      <Text>Open up App.tsx to start working on your app!</Text>
-      <StatusBar style="auto" />
-    </View>
+    <NavigationContainer>
+      <Stack.Navigator>
+        <Stack.Screen name="MatchSeriesScreen" component={MatchSeriesScreen} />
+        <Stack.Screen name="SeriesWiseMatchScreen" component={SeriesWiseMatchScreen} />
+        <Stack.Screen name="AddMatchScreen" component={AddMatchScreen} />
+        <Stack.Screen name="SelectTeamScreen" component={SelectTeamScreen} />
+        <Stack.Screen name="AfterSelectAddMatchDetailsScreen" component={AfterSelectAddMatchDetailsScreen}/>
+      </Stack.Navigator>
+    </NavigationContainer>
   );
-}
+};
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#fff',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-});
+export default App;
