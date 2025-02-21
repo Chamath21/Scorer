@@ -23,8 +23,9 @@ const AfterSelectAddMatchDetailsScreen = () => {
   const [scorerName, setScorerName] = useState('');
   const [loading, setLoading] = useState(false);
   const [teamDetails, setTeamDetails] = useState<TeamDetails | null>(null); // State with proper type
-  const [isClickedA, setIsClickedA] = useState(false); // Track if Team A is clicked
-  const [isClickedB, setIsClickedB] = useState(false); // Track if Team B is clicked
+  const [isTeam1Selected, setIsTeam1Selected] = useState(false); // Team 1 selected state
+  const [isTeam2Selected, setIsTeam2Selected] = useState(false); // Team 2 selected state
+
 
   // Navigation and Route Hooks
   const navigation = useNavigation<AfterSelectAddMatchDetailsNavigationProp>();
@@ -43,16 +44,17 @@ const AfterSelectAddMatchDetailsScreen = () => {
 
   const handleTeamSelect = (team: string) => {
     if (team === 'team1') {
-      setIsClickedA(true); // Set Team A as selected
-      setIsClickedB(false); // Make Team B unselected
+      setTeam1('Team A Selected');
+      setIsTeam1Selected(true);  // Mark Team 1 as selected
+      setIsTeam2Selected(false); // Mark Team 2 as unselected
       navigation.navigate("SelectTeamScreen", { team: team1 });
     } else {
-      setIsClickedA(false); // Make Team A unselected
-      setIsClickedB(true); // Set Team B as selected
+      setIsTeam1Selected(false); // Mark Team 1 as unselected
+      setIsTeam2Selected(true);  // Mark Team 2 as selected
       navigation.navigate("SelectTeamScreen", { team: team2 });
+      setTeam2('Team B Selected');
     }
   };
-  
 
   const fetchTeamData = async (teamId: string) => {
     try {
@@ -61,18 +63,13 @@ const AfterSelectAddMatchDetailsScreen = () => {
       const data = await response.json();
       
       if (data) {
-        if(isClickedA)
-        {
-          setTeam1(data.TeamName); // Set team1 name dynamically
-        }else if (isClickedB)
-        {
-          setTeam2(data.TeamName); // Set team2 name dynamically
-        }
-        
+        setTeam1(data.TeamName); // Set team1 name dynamically
       } else {
+        Alert.alert('No Data', 'No team data found for this ID.');
       }
     } catch (error) {
       console.error('Error fetching team data', error);
+      Alert.alert('Error', 'An error occurred while fetching team details.');
     } finally {
       setLoading(false);
     }
@@ -96,20 +93,6 @@ const AfterSelectAddMatchDetailsScreen = () => {
     }
   };
 
-    // Handle team selection for Team A
-    const handleTeamASelect = () => {
-      setIsClickedA(true); // Set Team A as selected
-      setIsClickedB(false); // Make Team B unselected
-      navigation.navigate("SelectTeamScreen", { team: team1 });
-    };
-  
-    // Handle team selection for Team B
-    const handleTeamBSelect = () => {
-      setIsClickedA(false); // Make Team A unselected
-      setIsClickedB(true); // Set Team B as selected
-      navigation.navigate("SelectTeamScreen", { team: team2});
-    };
-
   const handleSaveMatch = () => {
     // Logic to save the match (this could be saving to a database or state management)
     alert('Match Saved!');
@@ -122,20 +105,20 @@ const AfterSelectAddMatchDetailsScreen = () => {
         <View style={styles.teamContainer}>
           <TouchableOpacity
             style={styles.teamRoundButton}
-            onPress={() => handleTeamASelect()}>
+            onPress={() => handleTeamSelect('team1')}>
             <Text style={styles.plusSign}>+</Text>
           </TouchableOpacity>
-          <Text style={styles.teamName}>{team1}</Text> {/* Display default text until selected */}
+          <Text style={styles.teamName}>{team1 ? team1 : 'Team Name'}</Text>
         </View>
 
-        {/* Team  */}
+        {/* Team 2 */}
         <View style={styles.teamContainer}>
           <TouchableOpacity
             style={styles.teamRoundButton}
-            onPress={() => handleTeamBSelect()}>
+            onPress={() => handleTeamSelect('team2')}>
             <Text style={styles.plusSign}>+</Text>
           </TouchableOpacity>
-          <Text style={styles.teamName}>{team2 || team2}</Text>
+          <Text style={styles.teamName}>{team2 ? team2 : 'TEAM B'}</Text>
         </View>
       </View>
 
