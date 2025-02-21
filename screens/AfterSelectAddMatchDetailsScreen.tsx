@@ -128,7 +128,7 @@ const AfterSelectAddMatchDetailsScreen = () => {
           <Text style={styles.teamName}>{team1}</Text> {/* Display default text until selected */}
         </View>
 
-        {/* Team 2 */}
+        {/* Team  */}
         <View style={styles.teamContainer}>
           <TouchableOpacity
             style={styles.teamRoundButton}
