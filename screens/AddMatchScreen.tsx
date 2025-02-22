@@ -5,7 +5,6 @@ import { useNavigation } from '@react-navigation/native';
 
 const AddMatchTeamsScreen = () => {
   const [team1, setTeam1] = useState('');
-  const [team2, setTeam2] = useState('');
   const [venue, setVenue] = useState('');
   const [date, setDate] = useState('');
   const [time, setTime] = useState('');
@@ -20,10 +19,7 @@ const AddMatchTeamsScreen = () => {
   const handleTeamSelect = (team: string) => {
     if (team === 'team1') {
       navigation.navigate("SelectTeamScreen", { team: 'team1' });
-      setTeam1('Team A Selected');
-    } else {
-      navigation.navigate("SelectTeamScreen", { team: 'team2' });
-      setTeam2('Team B Selected');
+      setTeam1('Opposition Selected');
     }
   };
 
@@ -60,17 +56,7 @@ const AddMatchTeamsScreen = () => {
             onPress={() => handleTeamSelect('team1')}>
             <Text style={styles.plusSign}>+</Text>
           </TouchableOpacity>
-          <Text style={styles.teamName}>{team1 || 'TEAM A'}</Text>
-        </View>
-
-        {/* Team 2 */}
-        <View style={styles.teamContainer}>
-          <TouchableOpacity
-            style={styles.teamRoundButton}
-            onPress={() => handleTeamSelect('team2')}>
-            <Text style={styles.plusSign}>+</Text>
-          </TouchableOpacity>
-          <Text style={styles.teamName}>{team2 || 'TEAM B'}</Text>
+          <Text style={styles.teamName}>{team1 || 'Opposition'}</Text>
         </View>
       </View>
 
@@ -189,7 +175,7 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'flex-start',
     alignItems: 'center',
-    backgroundColor: 'black',
+    backgroundColor: 'rgba(30, 30, 30, 0.8)',
     padding: 15,
   },
   teamSelectionContainer: {
@@ -216,7 +202,7 @@ const styles = StyleSheet.create({
   },
   plusSign: {
     fontSize: 40,
-    color: '#FFD700',
+    color: 'rgba(30, 30, 30, 0.8)',
     fontWeight: 'bold',
   },
   teamName: {
@@ -271,7 +257,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
   },
   modalContent: {
-    backgroundColor: 'black',
+    backgroundColor: 'rgba(30, 30, 30, 0.8)',
     padding: 20,
     borderRadius: 10,
     width: '80%',
@@ -306,7 +292,7 @@ const styles = StyleSheet.create({
     padding: 10,
     borderWidth: 1,
     borderColor: '#ffffff',
-    backgroundColor: '#FFD700',
+    backgroundColor: 'rgba(30, 30, 30, 0.8)',
     alignItems: 'center',
     borderRadius: 5,
   },
@@ -315,7 +301,7 @@ const styles = StyleSheet.create({
     padding: 10,
     borderWidth: 1,
     borderColor: '#ffffff',
-    backgroundColor: '#FFD700',
+    backgroundColor: 'rgba(30, 30, 30, 0.8)',
     alignItems: 'center',
     borderRadius: 5,
   },
@@ -323,13 +309,9 @@ const styles = StyleSheet.create({
     marginTop: 20,
     padding: 10,
     borderWidth: 2,
-    borderColor: '#FFD700',
+    borderColor: 'rgba(30, 30, 30, 0.8)',
     backgroundColor: 'transparent',
     alignItems: 'center',
-  },
-  selectedFormatText: {
-    color: '#FFD700',
-    fontSize: 16,
   },
   scorerInput: {
     width: '90%',
@@ -344,13 +326,13 @@ const styles = StyleSheet.create({
   saveMatchButton: {
     marginTop: 80,  // Added margin for spacing
     padding: 15,
-    backgroundColor: '#FFD700',  // Yellow color for the button
+    backgroundColor: '#ffffff',  // Yellow color for the button
     borderRadius: 5,
     width: '90%',
     alignItems: 'center',
   },
   saveMatchButtonText: {
-    color: '#000000',  // Text color black for contrast
+    color: 'rgba(30, 30, 30, 0.8)',  // Text color black for contrast
     fontSize: 18,
     fontWeight: 'bold',
   },
