@@ -10,7 +10,7 @@ import {
   Image 
 } from 'react-native';
 import { useRoute, RouteProp, useNavigation } from '@react-navigation/native';
-import { AfterSelectAddMatchDetailsNavigationProp, RootStackParamList, SeriesWiseMatchScreenNavigationProp } from '../types';
+import { AfterSelectAddMatchDetailsNavigationProp, RootStackParamList } from '../types';
 
 interface Match {
   MatchLocation: string;
@@ -29,7 +29,7 @@ const SeriesWiseMatchScreen = () => {
   const route = useRoute<RouteProp<RootStackParamList, 'AfterSelectAddMatchDetailsScreen'>>();  
   const { seriesId } = route.params;
 
-  const [selectedTab, setSelectedTab] = useState<'Upcoming' | 'Live' | 'Past'>('Live');
+  const [selectedTab, setSelectedTab] = useState<'Upcoming' | 'Live' | 'Past'>('Upcoming'); // Set 'Upcoming' by default
   const [loading, setLoading] = useState(true);
   const [groupedMatches, setGroupedMatches] = useState({
     Upcoming: [] as Match[],
@@ -40,9 +40,7 @@ const SeriesWiseMatchScreen = () => {
   const navigation = useNavigation<AfterSelectAddMatchDetailsNavigationProp>();
 
   const handleAddMatchPress = () => {
-    // Now TypeScript knows the parameter type is correctly set as string
     navigation.navigate('AfterSelectAddMatchDetailsScreen', { seriesId: seriesId, teamId: null });
-
   };
 
   useEffect(() => {
@@ -126,10 +124,12 @@ const SeriesWiseMatchScreen = () => {
         />
       )}
 
-      {/* Add Match Button */}
-      <TouchableOpacity style={styles.addMatchButton} onPress={handleAddMatchPress}>
-        <Text style={styles.addMatchText}>+ Add Match</Text>
-      </TouchableOpacity>
+      {/* Conditionally Render Add Match Button */}
+      {selectedTab === 'Upcoming' && (
+        <TouchableOpacity style={styles.addMatchButton} onPress={handleAddMatchPress}>
+          <Text style={styles.addMatchText}>+ Add Match</Text>
+        </TouchableOpacity>
+      )}
     </View>
   );
 };

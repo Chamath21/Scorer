@@ -38,7 +38,7 @@ const AfterSelectAddMatchDetailsScreen = () => {
   const fetchTeamData = async (teamId: string) => {
     try {
       setLoading(true);
-      const response = await fetch(`http://192.168.1.3:5000/get_TeamDetailsById?teamId=${teamId}`);
+      const response = await fetch(`http://192.168.1.3:5000/?teamId=$get_TeamDetailsById{teamId}`);
       const data = await response.json();
 
       if (data) {

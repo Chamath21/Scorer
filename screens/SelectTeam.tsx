@@ -11,19 +11,19 @@ type Team = {
 
 type SelectTeamScreenProps = {
   navigation: AddOrSelectTeamScreenNavigationProp;
-  route: any; // Route to access params (e.g., seriesId)
+  route: any;
 };
 
 const SelectTeamScreen: React.FC<SelectTeamScreenProps> = ({ navigation, route }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [teams, setTeams] = useState<Team[]>([]);
   const [filteredTeams, setFilteredTeams] = useState<Team[]>([]);
-  const [showModal, setShowModal] = useState(false); // For toggling the modal
+  const [showModal, setShowModal] = useState(false);
   const [newTeamName, setNewTeamName] = useState('');
   const [newTeamLocation, setNewTeamLocation] = useState('');
   const [newTeamPictureUrl, setNewTeamPictureUrl] = useState('');
 
-  const { seriesId } = route.params; // Access the seriesId from route params
+  const { seriesId } = route.params;
 
   useEffect(() => {
     const fetchTeamDetails = async () => {
@@ -53,18 +53,31 @@ const SelectTeamScreen: React.FC<SelectTeamScreenProps> = ({ navigation, route }
   };
 
   const handleTeamSelect = (team: Team) => {
-    // Pass seriesId along with teamId to the next screen
     navigation.navigate('AfterSelectAddMatchDetailsScreen', { seriesId: seriesId, teamId: team.TeamId });
   };
 
+  const handleAddPlayers = (teamId: string) => {
+    navigation.navigate('AddPlayersScreen', { teamId });  // Navigate to AddPlayersScreen with teamId
+  };
+
   const renderTeam = ({ item }: { item: Team }) => (
-    <TouchableOpacity style={styles.teamRow} onPress={() => handleTeamSelect(item)}>
-      <Image source={{ uri: item.TeamPictureUrl }} style={styles.teamLogo} />
-      <View style={styles.teamInfo}>
-        <Text style={styles.teamName}>{item.TeamName}</Text>
-        <Text style={styles.teamLocation}>{item.TeamLocation}</Text>
-      </View>
-    </TouchableOpacity>
+    <View style={styles.teamRow}>
+      <TouchableOpacity style={styles.teamItem} onPress={() => handleTeamSelect(item)}>
+        <Image source={{ uri: item.TeamPictureUrl }} style={styles.teamLogo} />
+        <View style={styles.teamInfo}>
+          <Text style={styles.teamName}>{item.TeamName}</Text>
+          <Text style={styles.teamLocation}>{item.TeamLocation}</Text>
+        </View>
+      </TouchableOpacity>
+
+      {/* "+" Icon for Adding Players */}
+      <TouchableOpacity
+        style={styles.addPlayerButton}
+        onPress={() => handleAddPlayers(item.TeamId)}
+      >
+        <Text style={styles.addPlayerButtonText}>+</Text>
+      </TouchableOpacity>
+    </View>
   );
 
   const handleAddTeam = async () => {
@@ -74,11 +87,11 @@ const SelectTeamScreen: React.FC<SelectTeamScreenProps> = ({ navigation, route }
     }
 
     const newTeam: Team = {
-        TeamId: Math.random().toString(36).substr(2, 9),  // Generate a random TeamId
-        TeamName: newTeamName,
-        TeamLocation: newTeamLocation,
-        TeamPictureUrl: newTeamPictureUrl,
-      };
+      TeamId: Math.random().toString(36).substr(2, 9),
+      TeamName: newTeamName,
+      TeamLocation: newTeamLocation,
+      TeamPictureUrl: newTeamPictureUrl,
+    };
 
     try {
       const response = await fetch('http://192.168.1.3:5000/add_teams', {
@@ -92,20 +105,17 @@ const SelectTeamScreen: React.FC<SelectTeamScreenProps> = ({ navigation, route }
       const data = await response.json();
 
       if (response.ok) {
-        // Successfully added the team, update the UI
-        setTeams([...teams, newTeam]); // Update the list of teams locally
-        setFilteredTeams([...teams, newTeam]); // Update the filtered list
-        setShowModal(false); // Close the modal
-        setNewTeamName(''); // Clear the inputs
+        setTeams([...teams, newTeam]);
+        setFilteredTeams([...teams, newTeam]);
+        setShowModal(false);
+        setNewTeamName('');
         setNewTeamLocation('');
         setNewTeamPictureUrl('');
       } else {
-        // Handle error response from API
         console.error('Error adding team:', data.error);
         Alert.alert('Error', data.error || 'Something went wrong');
       }
     } catch (error) {
-      // Handle network or unexpected errors
       console.error('Error adding team:', error);
       Alert.alert('Error', 'An error occurred while adding the team.');
     }
@@ -129,9 +139,9 @@ const SelectTeamScreen: React.FC<SelectTeamScreenProps> = ({ navigation, route }
         contentContainerStyle={styles.list}
       />
 
-      {/* Add Team Button */}
+      {/* Add Team Button (Now with "+" mark) */}
       <TouchableOpacity style={styles.addButton} onPress={() => setShowModal(true)}>
-        <Text style={styles.addButtonText}>Add Team</Text>
+        <Text style={styles.addButtonText}>+</Text>
       </TouchableOpacity>
 
       {/* Modal for Adding a Team */}
@@ -197,6 +207,11 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     borderBottomWidth: 1,
     borderBottomColor: '#ffffff',
+    justifyContent: 'space-between',
+  },
+  teamItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
   },
   teamLogo: {
     width: 50,
@@ -210,23 +225,39 @@ const styles = StyleSheet.create({
   teamName: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#ffffff', // Set team name color to white
+    color: '#ffffff',
   },
   teamLocation: {
     fontSize: 14,
-    color: '#ffffff', // Set team location color to white
+    color: '#ffffff',
   },
   addButton: {
     backgroundColor: '#ffffff',
-    padding: 15,
-    borderRadius: 5,
+    padding: 10,
+    borderRadius: 50,
+    width: 60,
+    height: 60,
+    justifyContent: 'center',
     alignItems: 'center',
     marginTop: 20,
   },
   addButtonText: {
-    color: 'rgba(30, 30, 30, 0.8)',
-    fontSize: 16,
+    fontSize: 30,
     fontWeight: 'bold',
+    color: 'rgba(30, 30, 30, 0.8)',
+  },
+  addPlayerButton: {
+    backgroundColor: '#ff9800',
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  addPlayerButtonText: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#ffffff',
   },
   modalContainer: {
     flex: 1,
@@ -244,16 +275,16 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: 'bold',
     marginBottom: 10,
-    color: 'rgba(30, 30, 30, 0.8)',
+    color: 'rgba(0, 0, 0, 0.5)',
   },
   input: {
     height: 40,
-    borderColor: '#ffffff',
+    borderColor: 'rgba(0, 0, 0, 0.5)',
     borderWidth: 1,
     borderRadius: 5,
     marginBottom: 10,
     paddingLeft: 10,
-    color: 'rgba(30, 30, 30, 0.8)',
+    color: 'rgba(0, 0, 0, 0.5)',
   },
 });
 
