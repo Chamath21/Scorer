@@ -74,7 +74,7 @@ const styles = StyleSheet.create({
   container: { 
     flex: 1, 
     padding: 10, 
-    backgroundColor: '#ffffff'  // Background color set here
+    backgroundColor: 'rgba(30, 30, 30, 0.8)'  // Background color set here
   },
   card: {
     backgroundColor: 'rgba(30, 30, 30, 0.8)',
@@ -94,7 +94,7 @@ const styles = StyleSheet.create({
   seriesName: {
     fontSize: 16,
     fontWeight: 'bold',
-    color: '#ffffff',
+    color: '#fff',
     marginTop: 5,
   },
   seriesLocation: {

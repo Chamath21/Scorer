@@ -11,9 +11,10 @@ type Team = {
 
 type SelectTeamScreenProps = {
   navigation: AddOrSelectTeamScreenNavigationProp;
+  route: any; // Route to access params (e.g., seriesId)
 };
 
-const SelectTeamScreen: React.FC<SelectTeamScreenProps> = ({ navigation }) => {
+const SelectTeamScreen: React.FC<SelectTeamScreenProps> = ({ navigation, route }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [teams, setTeams] = useState<Team[]>([]);
   const [filteredTeams, setFilteredTeams] = useState<Team[]>([]);
@@ -21,6 +22,8 @@ const SelectTeamScreen: React.FC<SelectTeamScreenProps> = ({ navigation }) => {
   const [newTeamName, setNewTeamName] = useState('');
   const [newTeamLocation, setNewTeamLocation] = useState('');
   const [newTeamPictureUrl, setNewTeamPictureUrl] = useState('');
+
+  const { seriesId } = route.params; // Access the seriesId from route params
 
   useEffect(() => {
     const fetchTeamDetails = async () => {
@@ -50,7 +53,8 @@ const SelectTeamScreen: React.FC<SelectTeamScreenProps> = ({ navigation }) => {
   };
 
   const handleTeamSelect = (team: Team) => {
-    navigation.navigate('AfterSelectAddMatchDetailsScreen', { teamId: team.TeamId });
+    // Pass seriesId along with teamId to the next screen
+    navigation.navigate('AfterSelectAddMatchDetailsScreen', { seriesId: seriesId, teamId: team.TeamId });
   };
 
   const renderTeam = ({ item }: { item: Team }) => (
