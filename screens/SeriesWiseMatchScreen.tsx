@@ -10,7 +10,7 @@ import {
   Image 
 } from 'react-native';
 import { useRoute, RouteProp, useNavigation } from '@react-navigation/native';
-import { RootStackParamList, SeriesWiseMatchScreenNavigationProp } from '../types';
+import { AfterSelectAddMatchDetailsNavigationProp, RootStackParamList, SeriesWiseMatchScreenNavigationProp } from '../types';
 
 interface Match {
   MatchLocation: string;
@@ -26,7 +26,7 @@ interface Match {
 }
 
 const SeriesWiseMatchScreen = () => {
-  const route = useRoute<RouteProp<RootStackParamList, 'SeriesWiseMatchScreen'>>();  
+  const route = useRoute<RouteProp<RootStackParamList, 'AfterSelectAddMatchDetailsScreen'>>();  
   const { seriesId } = route.params;
 
   const [selectedTab, setSelectedTab] = useState<'Upcoming' | 'Live' | 'Past'>('Live');
@@ -37,11 +37,12 @@ const SeriesWiseMatchScreen = () => {
     Past: [] as Match[],
   });
 
-  const navigation = useNavigation<SeriesWiseMatchScreenNavigationProp>();
+  const navigation = useNavigation<AfterSelectAddMatchDetailsNavigationProp>();
 
   const handleAddMatchPress = () => {
     // Now TypeScript knows the parameter type is correctly set as string
-    navigation.navigate('AddMatchScreen', { seriesId });
+    navigation.navigate('AfterSelectAddMatchDetailsScreen', { seriesId: seriesId, teamId: null });
+
   };
 
   useEffect(() => {

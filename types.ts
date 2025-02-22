@@ -4,9 +4,8 @@ import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 export type RootStackParamList = {
   MatchSeriesScreen: undefined;
   SeriesWiseMatchScreen: { seriesId: string };
-  AddMatchScreen: { seriesId: string };
-  SelectTeamScreen: { team: string };
-  AfterSelectAddMatchDetailsScreen: {teamId: string}
+  SelectTeamScreen: {seriesId: string | null, team: string };
+  AfterSelectAddMatchDetailsScreen: {seriesId: string | null, teamId: string | null}
 };
 
 // Type for navigation in each screen
@@ -18,11 +17,6 @@ export type MatchSeriesScreenNavigationProp = NativeStackNavigationProp<
 export type SeriesWiseMatchScreenNavigationProp = NativeStackNavigationProp<
   RootStackParamList,
   'SeriesWiseMatchScreen'
->;
-
-export type AddMatchScreenNavigationProp = NativeStackNavigationProp<
-  RootStackParamList,
-  'AddMatchScreen'
 >;
 
 export type SelectTeamScreenNavigationProp = NativeStackNavigationProp<
@@ -37,5 +31,4 @@ export type AfterSelectAddMatchDetailsNavigationProp = NativeStackNavigationProp
 
 // Define a type for navigation that can be used for both screens (AddMatchScreen and SelectTeamScreen)
 export type AddOrSelectTeamScreenNavigationProp =
-  | AddMatchScreenNavigationProp
   | SelectTeamScreenNavigationProp;

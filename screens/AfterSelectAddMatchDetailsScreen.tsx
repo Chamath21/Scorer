@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, TextInput, Modal, Button, Alert, Image } from 'react-native';
-import { AfterSelectAddMatchDetailsNavigationProp, RootStackParamList, SelectTeamScreenNavigationProp } from '../types';  
+import { View, Text, StyleSheet, TouchableOpacity, TextInput, Alert, Image } from 'react-native';
+import { AfterSelectAddMatchDetailsNavigationProp, MatchSeriesScreenNavigationProp, RootStackParamList, SeriesWiseMatchScreenNavigationProp } from '../types';
 import { RouteProp, useNavigation, useRoute, useFocusEffect } from '@react-navigation/native';
 import axios from 'axios';
 
@@ -11,51 +11,39 @@ interface TeamDetails {
 }
 
 const AfterSelectAddMatchDetailsScreen = () => {
-  const [team1, setTeam1] = useState(''); 
-  const [team1Picture, setTeam1Picture] = useState('');  // State to store team image URL
+  const [team1, setTeam1] = useState('');
+  const [team1Picture, setTeam1Picture] = useState('');
   const [venue, setVenue] = useState('');
   const [date, setDate] = useState('');
   const [time, setTime] = useState('');
-  const [matchFormat, setMatchFormat] = useState('');
-  const [showFormatModal, setShowFormatModal] = useState(false);
   const [overs, setOvers] = useState('');
-  const [showOversInput, setShowOversInput] = useState(false);
   const [scorerName, setScorerName] = useState('');
   const [loading, setLoading] = useState(false);
-  const [teamDetails, setTeamDetails] = useState<TeamDetails | null>(null); // State with proper type
-  const [isTeam1Selected, setIsTeam1Selected] = useState(false); // Team 1 selected state
 
-  // Navigation and Route Hooks
   const navigation = useNavigation<AfterSelectAddMatchDetailsNavigationProp>();
+  const backNavigation = useNavigation<MatchSeriesScreenNavigationProp>();
   const route = useRoute<RouteProp<RootStackParamList, 'AfterSelectAddMatchDetailsScreen'>>(); 
-  const { teamId } = route.params;
+  const route1 = useRoute<RouteProp<RootStackParamList, 'MatchSeriesScreen'>>(); 
+  const { seriesId, teamId } = route.params; 
+  
 
-  // When the screen is focused, show the alert with teamId
   useFocusEffect(
     React.useCallback(() => {
-      // Show an alert when the screen is focused (which includes going back to this screen)
       if (teamId) {
         fetchTeamData(teamId);
       }
-    }, [teamId]) // Re-run the alert if teamId changes
+    }, [teamId])
   );
-
-  const handleTeamSelect = (team: string) => {
-    if (team === 'team1') {
-      setIsTeam1Selected(true);  // Mark Team 1 as selected
-      navigation.navigate("SelectTeamScreen", { team: team1 });  // Pass team1 for selection
-    }
-  };
 
   const fetchTeamData = async (teamId: string) => {
     try {
       setLoading(true);
       const response = await fetch(`http://192.168.1.3:5000/get_TeamDetailsById?teamId=${teamId}`);
       const data = await response.json();
-      
+
       if (data) {
-        setTeam1(data.TeamName); // Set team1 name dynamically
-        setTeam1Picture(data.TeamPictureUrl); // Set the team picture URL
+        setTeam1(data.TeamName);
+        setTeam1Picture(data.TeamPictureUrl);
       } else {
         Alert.alert('No Data', 'No team data found for this ID.');
       }
@@ -67,53 +55,70 @@ const AfterSelectAddMatchDetailsScreen = () => {
     }
   };
 
-  const handleFormatSelect = (format: string) => {
-    setMatchFormat(format);
-    if (format === 'Short-Format') {
-      setShowOversInput(true);
-    } else {
-      setShowOversInput(false);
-      setOvers('');  // Reset overs if Test is selected
+  const handleSaveMatch = async () => {
+    if (!team1 || !venue || !date || !time || !overs || !scorerName) {
+      Alert.alert('Error', 'Please fill in all fields.');
+      return;
     }
-    setShowFormatModal(false);
+
+    const matchData = {
+      matchType: 2,
+      matchOvers: overs,
+      matchLocation: venue,
+      matchDateTime: `${date} ${time}`,
+      seriesId: seriesId,
+      teamId: teamId, 
+      scorerName: scorerName
+    };
+
+    try {
+      setLoading(true);
+      const response = await axios.post('http://192.168.1.3:5000/save_match', matchData);
+      
+      if (response.status === 200) {
+        Alert.alert('Success', 'Match saved successfully!');
+        backNavigation.navigate('MatchSeriesScreen');
+      } else {
+        Alert.alert('Error', 'Failed to save match.');
+      }
+    } catch (error) {
+      console.error('Error saving match', error);
+      Alert.alert('Error', 'An error occurred while saving the match.');
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const handleSaveOvers = () => {
-    if (overs) {
-      setMatchFormat(`Short-Format (${overs} overs)`);
-      setShowOversInput(false);
+  const handleOversChange = (text: string) => {
+    const regex = /^[0-9]*$/;
+    if (regex.test(text)) {
+      setOvers(text);
     }
-  };
-
-  const handleSaveMatch = () => {
-    // Logic to save the match (this could be saving to a database or state management)
-    alert('Match Saved!');
   };
 
   return (
     <View style={styles.container}>
-      {/* Team Selection */}
       <View style={styles.teamSelectionContainer}>
-        {/* Opposition */}
         <View style={styles.teamContainer}>
           <TouchableOpacity
             style={styles.teamRoundButton}
-            onPress={() => handleTeamSelect('team1')}>
-            {/* Display team image in circle */}
+            onPress={() => navigation.navigate('SelectTeamScreen', { seriesId, team: team1 })}
+          >
             {team1Picture ? (
-              <Image 
-                source={{ uri: team1Picture }} 
+              <Image
+                source={{ uri: team1Picture }}
                 style={styles.teamImage}
               />
             ) : (
-              <Text style={styles.plusSign}>+</Text> // Fallback for no image
+              <Text style={styles.plusSign}>+</Text>
             )}
           </TouchableOpacity>
+
           <Text style={styles.teamName}>{team1 ? team1 : 'Opposition'}</Text>
         </View>
       </View>
 
-      {/* Venue Input with Underline */}
+      {/* Venue Input */}
       <TextInput
         style={styles.venueInput}
         placeholder="Enter Venue"
@@ -122,7 +127,7 @@ const AfterSelectAddMatchDetailsScreen = () => {
         placeholderTextColor="#b2b2b2"
       />
 
-      {/* Date and Time Input on One Line */}
+      {/* Date and Time Input */}
       <View style={styles.dateTimeContainer}>
         <TextInput
           style={styles.dateTimeInput}
@@ -140,64 +145,15 @@ const AfterSelectAddMatchDetailsScreen = () => {
         />
       </View>
 
-      {/* Match Format Selection */}
-      <TouchableOpacity
-        style={styles.formatButton}
-        onPress={() => setShowFormatModal(true)}
-      >
-        <Text style={styles.buttonText}>
-          {matchFormat ? matchFormat : 'Select Match Format'}
-        </Text>
-      </TouchableOpacity>
-
-      {/* Format Modal */}
-      <Modal
-        transparent={true}
-        visible={showFormatModal}
-        animationType="slide"
-        onRequestClose={() => setShowFormatModal(false)}
-      >
-        <View style={styles.modalContainer}>
-          <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>Select Format</Text>
-            <TouchableOpacity
-              style={styles.modalOption}
-              onPress={() => handleFormatSelect('Test')}
-            >
-              <Text style={styles.modalText}>Test</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={styles.modalOption}
-              onPress={() => handleFormatSelect('Short-Format')}
-            >
-              <Text style={styles.modalText}>Short-Format</Text>
-            </TouchableOpacity>
-
-            {showOversInput && (
-              <View style={styles.oversInputContainer}>
-                <TextInput
-                  style={styles.oversInput}
-                  placeholder="Enter Overs"
-                  value={overs}
-                  onChangeText={setOvers}
-                  keyboardType="numeric"
-                  placeholderTextColor="#b2b2b2"
-                />
-                <TouchableOpacity style={styles.saveButton} onPress={handleSaveOvers}>
-                  <Text style={styles.buttonText}>Save</Text>
-                </TouchableOpacity>
-              </View>
-            )}
-
-            <TouchableOpacity
-              style={styles.closeButton}
-              onPress={() => setShowFormatModal(false)}
-            >
-              <Text style={styles.buttonText}>Close</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      </Modal>
+      {/* Overs Input */}
+      <TextInput
+        style={styles.oversInput}
+        placeholder="Enter Overs (whole number)"
+        value={overs}
+        onChangeText={handleOversChange}
+        keyboardType="numeric"
+        placeholderTextColor="#b2b2b2"
+      />
 
       {/* Scorer Name Input */}
       <TextInput
@@ -212,8 +168,9 @@ const AfterSelectAddMatchDetailsScreen = () => {
       <TouchableOpacity
         style={styles.saveMatchButton}
         onPress={handleSaveMatch}
+        disabled={loading}
       >
-        <Text style={styles.saveMatchButtonText}>Save Match</Text>
+        <Text style={styles.saveMatchButtonText}>{loading ? 'Saving...' : 'Save Match'}</Text>
       </TouchableOpacity>
     </View>
   );
@@ -291,73 +248,15 @@ const styles = StyleSheet.create({
     color: '#ffffff',
     textAlign: 'center',
   },
-  formatButton: {
-    marginTop: 30,
-    padding: 10,
-    borderWidth: 2,
-    borderColor: '#ffffff',
-    borderRadius: 5,
-    backgroundColor: 'transparent',
-    alignItems: 'center',
-  },
-  buttonText: {
-    color: '#ffffff',
-    fontSize: 16,
-  },
-  modalContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-  },
-  modalContent: {
-    backgroundColor: 'black',
-    padding: 20,
-    borderRadius: 10,
-    width: '80%',
-    alignItems: 'center',
-  },
-  modalTitle: {
-    color: '#ffffff',
-    fontSize: 18,
-    marginBottom: 15,
-  },
-  modalOption: {
-    marginVertical: 10,
-  },
-  modalText: {
-    color: '#ffffff',
-    fontSize: 16,
-  },
-  oversInputContainer: {
-    marginTop: 15,
-  },
   oversInput: {
-    width: '100%',
+    width: '90%',
     padding: 10,
-    borderWidth: 1,
-    borderColor: '#ffffff',
-    color: '#ffffff',
+    marginTop: 20,
+    borderBottomWidth: 2,
+    borderBottomColor: '#ffffff',
     fontSize: 16,
+    color: '#ffffff',
     textAlign: 'center',
-  },
-  saveButton: {
-    marginTop: 10,
-    padding: 10,
-    borderWidth: 1,
-    borderColor: '#ffffff',
-    backgroundColor: '#FFD700',
-    alignItems: 'center',
-    borderRadius: 5,
-  },
-  closeButton: {
-    marginTop: 15,
-    padding: 10,
-    borderWidth: 1,
-    borderColor: '#ffffff',
-    backgroundColor: '#FFD700',
-    alignItems: 'center',
-    borderRadius: 5,
   },
   scorerInput: {
     width: '90%',
@@ -370,11 +269,11 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   saveMatchButton: {
-    marginTop: 80, 
-    padding: 15,
-    backgroundColor: '#ffffff',  
+    marginTop: 50,
+    backgroundColor: '#ffffff',
+    padding: 20,
+    width: '80%',
     borderRadius: 5,
-    width: '90%',
     alignItems: 'center',
   },
   saveMatchButtonText: {
