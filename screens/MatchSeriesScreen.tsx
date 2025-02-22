@@ -6,21 +6,20 @@ import {
   StyleSheet, 
   ActivityIndicator, 
   Alert, 
-  ImageBackground, 
   TouchableOpacity, 
   Image 
 } from 'react-native';
 import axios from 'axios';
 import { Dimensions } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import { MatchSeriesScreenNavigationProp } from '../types'; // Import the navigation type
+import { MatchSeriesScreenNavigationProp } from '../types';
 
 const screenWidth = Dimensions.get('window').width;
 
 const MatchSeriesScreen = () => {
   const [seriesData, setSeriesData] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const navigation = useNavigation<MatchSeriesScreenNavigationProp>(); // ✅ Use typed navigation
+  const navigation = useNavigation<MatchSeriesScreenNavigationProp>(); // Navigation Hook
 
   useEffect(() => {
     fetchSeriesData();
@@ -28,7 +27,7 @@ const MatchSeriesScreen = () => {
 
   const fetchSeriesData = async () => {
     try {
-      const response = await axios.get('http://192.168.1.9:5000/get_seriesmasterData');
+      const response = await axios.get('http://192.168.1.3:5000/get_seriesmasterData');
       setSeriesData(response.data);
     } catch (error) {
       console.error('Error fetching series data:', error);
@@ -38,7 +37,7 @@ const MatchSeriesScreen = () => {
     }
   };
 
-  // ✅ TypeScript now recognizes the navigation function
+  // Handle Series Click and Navigate with SeriesId
   const handleSeriesClick = (seriesId: string) => {
     navigation.navigate('SeriesWiseMatchScreen', { seriesId });
   };
@@ -52,7 +51,7 @@ const MatchSeriesScreen = () => {
   }
 
   return (
-    <ImageBackground source={require('../assets/bg.jpg')} style={styles.container}>
+    <View style={styles.container}>  {/* Changed ImageBackground to View with background color */}
       <FlatList
         data={seriesData}
         keyExtractor={(item) => item.SeriesId.toString()}
@@ -67,12 +66,16 @@ const MatchSeriesScreen = () => {
           </TouchableOpacity>
         )}
       />
-    </ImageBackground>
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1, padding: 10 },
+  container: { 
+    flex: 1, 
+    padding: 10, 
+    backgroundColor: '#ffffff'  // Background color set here
+  },
   card: {
     backgroundColor: 'rgba(30, 30, 30, 0.8)',
     borderRadius: 10,
@@ -91,7 +94,7 @@ const styles = StyleSheet.create({
   seriesName: {
     fontSize: 16,
     fontWeight: 'bold',
-    color: '#FFD700',
+    color: '#ffffff',
     marginTop: 5,
   },
   seriesLocation: {

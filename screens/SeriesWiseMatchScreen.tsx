@@ -37,7 +37,7 @@ const SeriesWiseMatchScreen = () => {
     Past: [] as Match[],
   });
 
-   const navigation = useNavigation<SeriesWiseMatchScreenNavigationProp>();
+  const navigation = useNavigation<SeriesWiseMatchScreenNavigationProp>();
 
   const handleAddMatchPress = () => {
     // Now TypeScript knows the parameter type is correctly set as string
@@ -51,7 +51,7 @@ const SeriesWiseMatchScreen = () => {
   const fetchMatches = async () => {
     setLoading(true);
     try {
-      const response = await fetch(`http://192.168.1.9:5000/get_SeriesWisematches?seriesId=${seriesId}`);
+      const response = await fetch(`http://192.168.1.3:5000/get_SeriesWisematches?seriesId=${seriesId}`);
       const data = await response.json();
 
       const grouped = {
@@ -134,23 +134,97 @@ const SeriesWiseMatchScreen = () => {
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1, padding: 10, backgroundColor: '#121212' },
-  title: { fontSize: 24, fontWeight: 'bold', color: '#FFD700', textAlign: 'center', marginBottom: 10 },
-  tabContainer: { flexDirection: 'row', justifyContent: 'space-around', marginBottom: 15 },
-  tabButton: { paddingVertical: 10, paddingHorizontal: 30, borderRadius: 25, backgroundColor: '#333' },
-  activeTab: { backgroundColor: '#FFD700' },
-  tabText: { color: '#fff', fontWeight: 'bold' },
-  matchCard: { backgroundColor: '#222', padding: 20, borderRadius: 15, marginVertical: 10, borderWidth: 2, borderColor: '#333' },
-  matchCardHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 },
-  teamImage: { width: 50, height: 50, borderRadius: 25 },
-  matchTitle: { fontSize: 18, fontWeight: 'bold', color: '#FFD700', textAlign: 'center', flex: 1 },
-  matchInfo: { fontSize: 14, color: '#ddd', marginTop: 5, textAlign: 'center' },
-  upcoming: { borderColor: '#FFD700', borderWidth: 2 },
-  live: { borderColor: '#FF4500', borderWidth: 2 },
-  past: { borderColor: '#A9A9A9', borderWidth: 2 },
-  emptyText: { textAlign: 'center', color: '#bbb', marginTop: 20 },
-  addMatchButton: { backgroundColor: '#FFD700', paddingVertical: 12, alignItems: 'center', borderRadius: 10, marginTop: 20 },
-  addMatchText: { fontSize: 18, fontWeight: 'bold', color: '#000' },
+  container: { 
+    flex: 1, 
+    padding: 10, 
+    backgroundColor: '#ffffff' 
+  },
+  title: { 
+    fontSize: 24, 
+    fontWeight: 'bold', 
+    color: '#fff', 
+    textAlign: 'center', 
+    marginBottom: 10 
+  },
+  tabContainer: { 
+    flexDirection: 'row', 
+    justifyContent: 'space-around', 
+    marginBottom: 15 
+  },
+  tabButton: { 
+    paddingVertical: 10, 
+    paddingHorizontal: 30, 
+    borderRadius: 25, 
+    backgroundColor: '#333' 
+  },
+  activeTab: { 
+    backgroundColor: 'rgba(30, 30, 30, 0.8)' 
+  },
+  tabText: { 
+    color: '#fff',  // Set text color to white
+    fontWeight: 'bold' 
+  },
+  matchCard: { 
+    backgroundColor: 'rgba(30, 30, 30, 0.8)', 
+    padding: 20, 
+    borderRadius: 15, 
+    marginVertical: 10, 
+    borderWidth: 2, 
+    borderColor: '#333' 
+  },
+  matchCardHeader: { 
+    flexDirection: 'row', 
+    justifyContent: 'space-between', 
+    alignItems: 'center', 
+    marginBottom: 10 
+  },
+  teamImage: { 
+    width: 50, 
+    height: 50, 
+    borderRadius: 25 
+  },
+  matchTitle: { 
+    fontSize: 18, 
+    fontWeight: 'bold', 
+    color: '#ffffff',  // Set text color to gold
+    textAlign: 'center', 
+    flex: 1 
+  },
+  matchInfo: { 
+    fontSize: 14, 
+    color: '#ddd',  // Set text color to light gray
+    marginTop: 5, 
+    textAlign: 'center' 
+  },
+  upcoming: { 
+    borderColor: 'rgba(30, 30, 30, 0.8)', 
+    borderWidth: 2 
+  },
+  live: { 
+    borderColor: '#FF4500', 
+    borderWidth: 2 
+  },
+  past: { 
+    borderColor: '#A9A9A9', 
+    borderWidth: 2 
+  },
+  emptyText: { 
+    textAlign: 'center', 
+    color: '#bbb',  // Set text color to light gray
+    marginTop: 20 
+  },
+  addMatchButton: { 
+    backgroundColor: 'rgba(30, 30, 30, 0.8)', 
+    paddingVertical: 12, 
+    alignItems: 'center', 
+    borderRadius: 10, 
+    marginTop: 20 
+  },
+  addMatchText: { 
+    fontSize: 18, 
+    fontWeight: 'bold', 
+    color: '#ffffff'  // Set text color to black
+  },
 });
 
 export default SeriesWiseMatchScreen;

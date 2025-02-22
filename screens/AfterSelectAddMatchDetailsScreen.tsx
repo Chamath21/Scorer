@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, TextInput, Modal, Button, Alert } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, TextInput, Modal, Button, Alert, Image } from 'react-native';
 import { AfterSelectAddMatchDetailsNavigationProp, RootStackParamList, SelectTeamScreenNavigationProp } from '../types';  
 import { RouteProp, useNavigation, useRoute, useFocusEffect } from '@react-navigation/native';
 import axios from 'axios';
@@ -12,7 +12,7 @@ interface TeamDetails {
 
 const AfterSelectAddMatchDetailsScreen = () => {
   const [team1, setTeam1] = useState(''); 
-  const [team2, setTeam2] = useState('');
+  const [team1Picture, setTeam1Picture] = useState('');  // State to store team image URL
   const [venue, setVenue] = useState('');
   const [date, setDate] = useState('');
   const [time, setTime] = useState('');
@@ -23,8 +23,7 @@ const AfterSelectAddMatchDetailsScreen = () => {
   const [scorerName, setScorerName] = useState('');
   const [loading, setLoading] = useState(false);
   const [teamDetails, setTeamDetails] = useState<TeamDetails | null>(null); // State with proper type
-  const [isClickedA, setIsClickedA] = useState(false); // Track if Team A is clicked
-  const [isClickedB, setIsClickedB] = useState(false); // Track if Team B is clicked
+  const [isTeam1Selected, setIsTeam1Selected] = useState(false); // Team 1 selected state
 
   // Navigation and Route Hooks
   const navigation = useNavigation<AfterSelectAddMatchDetailsNavigationProp>();
@@ -43,36 +42,26 @@ const AfterSelectAddMatchDetailsScreen = () => {
 
   const handleTeamSelect = (team: string) => {
     if (team === 'team1') {
-      setIsClickedA(true); // Set Team A as selected
-      setIsClickedB(false); // Make Team B unselected
-      navigation.navigate("SelectTeamScreen", { team: team1 });
-    } else {
-      setIsClickedA(false); // Make Team A unselected
-      setIsClickedB(true); // Set Team B as selected
-      navigation.navigate("SelectTeamScreen", { team: team2 });
+      setIsTeam1Selected(true);  // Mark Team 1 as selected
+      navigation.navigate("SelectTeamScreen", { team: team1 });  // Pass team1 for selection
     }
   };
-  
 
   const fetchTeamData = async (teamId: string) => {
     try {
       setLoading(true);
-      const response = await fetch(`http://192.168.1.9:5000/get_TeamDetailsById?teamId=${teamId}`);
+      const response = await fetch(`http://192.168.1.3:5000/get_TeamDetailsById?teamId=${teamId}`);
       const data = await response.json();
       
       if (data) {
-        if(isClickedA)
-        {
-          setTeam1(data.TeamName); // Set team1 name dynamically
-        }else if (isClickedB)
-        {
-          setTeam2(data.TeamName); // Set team2 name dynamically
-        }
-        
+        setTeam1(data.TeamName); // Set team1 name dynamically
+        setTeam1Picture(data.TeamPictureUrl); // Set the team picture URL
       } else {
+        Alert.alert('No Data', 'No team data found for this ID.');
       }
     } catch (error) {
       console.error('Error fetching team data', error);
+      Alert.alert('Error', 'An error occurred while fetching team details.');
     } finally {
       setLoading(false);
     }
@@ -96,20 +85,6 @@ const AfterSelectAddMatchDetailsScreen = () => {
     }
   };
 
-    // Handle team selection for Team A
-    const handleTeamASelect = () => {
-      setIsClickedA(true); // Set Team A as selected
-      setIsClickedB(false); // Make Team B unselected
-      navigation.navigate("SelectTeamScreen", { team: team1 });
-    };
-  
-    // Handle team selection for Team B
-    const handleTeamBSelect = () => {
-      setIsClickedA(false); // Make Team A unselected
-      setIsClickedB(true); // Set Team B as selected
-      navigation.navigate("SelectTeamScreen", { team: team2});
-    };
-
   const handleSaveMatch = () => {
     // Logic to save the match (this could be saving to a database or state management)
     alert('Match Saved!');
@@ -117,25 +92,24 @@ const AfterSelectAddMatchDetailsScreen = () => {
 
   return (
     <View style={styles.container}>
+      {/* Team Selection */}
       <View style={styles.teamSelectionContainer}>
-        {/* Team 1 */}
+        {/* Opposition */}
         <View style={styles.teamContainer}>
           <TouchableOpacity
             style={styles.teamRoundButton}
-            onPress={() => handleTeamASelect()}>
-            <Text style={styles.plusSign}>+</Text>
+            onPress={() => handleTeamSelect('team1')}>
+            {/* Display team image in circle */}
+            {team1Picture ? (
+              <Image 
+                source={{ uri: team1Picture }} 
+                style={styles.teamImage}
+              />
+            ) : (
+              <Text style={styles.plusSign}>+</Text> // Fallback for no image
+            )}
           </TouchableOpacity>
-          <Text style={styles.teamName}>{team1}</Text> {/* Display default text until selected */}
-        </View>
-
-        {/* Team  */}
-        <View style={styles.teamContainer}>
-          <TouchableOpacity
-            style={styles.teamRoundButton}
-            onPress={() => handleTeamBSelect()}>
-            <Text style={styles.plusSign}>+</Text>
-          </TouchableOpacity>
-          <Text style={styles.teamName}>{team2 || team2}</Text>
+          <Text style={styles.teamName}>{team1 ? team1 : 'Opposition'}</Text>
         </View>
       </View>
 
@@ -250,19 +224,19 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'flex-start',
     alignItems: 'center',
-    backgroundColor: 'black',
+    backgroundColor: 'rgba(30, 30, 30, 0.8)',
     padding: 15,
   },
   teamSelectionContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
+    justifyContent: 'center',
+    alignItems: 'center',
     width: '100%',
     marginTop: 50,
     marginBottom: 20,
   },
   teamContainer: {
     alignItems: 'center',
-    width: '40%',
+    width: '60%',
   },
   teamRoundButton: {
     width: 100,
@@ -274,6 +248,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: '#fff',
     marginBottom: 10,
+  },
+  teamImage: {
+    width: 100,
+    height: 100,
+    borderRadius: 50,
   },
   plusSign: {
     fontSize: 40,
@@ -393,13 +372,13 @@ const styles = StyleSheet.create({
   saveMatchButton: {
     marginTop: 80, 
     padding: 15,
-    backgroundColor: '#FFD700',  
+    backgroundColor: '#ffffff',  
     borderRadius: 5,
     width: '90%',
     alignItems: 'center',
   },
   saveMatchButtonText: {
-    color: '#000000',  
+    color: 'rgba(30, 30, 30, 0.8)',
     fontSize: 18,
     fontWeight: 'bold',
   },
