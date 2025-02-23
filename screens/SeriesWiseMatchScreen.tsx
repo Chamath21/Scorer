@@ -7,10 +7,12 @@ import {
   TouchableOpacity, 
   ActivityIndicator, 
   Alert, 
-  Image 
+  Image, 
+  Modal, 
+  TouchableWithoutFeedback 
 } from 'react-native';
 import { useRoute, RouteProp, useNavigation } from '@react-navigation/native';
-import { AfterSelectAddMatchDetailsNavigationProp, RootStackParamList, SeriesWiseMatchScreenNavigationProp } from '../types';
+import { AfterSelectAddMatchDetailsNavigationProp, RootStackParamList, SelectTeamsScreenNavigationProp } from '../types';
 
 interface Match {
   MatchLocation: string;
@@ -29,20 +31,22 @@ const SeriesWiseMatchScreen = () => {
   const route = useRoute<RouteProp<RootStackParamList, 'AfterSelectAddMatchDetailsScreen'>>();  
   const { seriesId } = route.params;
 
-  const [selectedTab, setSelectedTab] = useState<'Upcoming' | 'Live' | 'Past'>('Live');
+  const [selectedTab, setSelectedTab] = useState<'Upcoming' | 'Live' | 'Past'>('Upcoming'); 
   const [loading, setLoading] = useState(true);
   const [groupedMatches, setGroupedMatches] = useState({
     Upcoming: [] as Match[],
     Live: [] as Match[],
     Past: [] as Match[],
   });
+  const [selectedMatch, setSelectedMatch] = useState<Match | null>(null); 
+  const [isModalVisible, setIsModalVisible] = useState(false); 
+  const [isDeleting, setIsDeleting] = useState(false); // Track the deleting state
 
   const navigation = useNavigation<AfterSelectAddMatchDetailsNavigationProp>();
+  const navigation1 = useNavigation<SelectTeamsScreenNavigationProp>();
 
   const handleAddMatchPress = () => {
-    // Now TypeScript knows the parameter type is correctly set as string
     navigation.navigate('AfterSelectAddMatchDetailsScreen', { seriesId: seriesId, teamId: null });
-
   };
 
   useEffect(() => {
@@ -70,7 +74,10 @@ const SeriesWiseMatchScreen = () => {
   };
 
   const renderMatchCard = ({ item }: { item: Match }) => (
-    <View style={[styles.matchCard, item.MatchStatus === 1 && styles.upcoming, item.MatchStatus === 2 && styles.live, item.MatchStatus === 3 && styles.past]}>
+    <TouchableOpacity 
+      onPress={() => handleMatchPress(item)} 
+      style={[styles.matchCard, item.MatchStatus === 1 && styles.upcoming, item.MatchStatus === 2 && styles.live, item.MatchStatus === 3 && styles.past]}
+    >
       <View style={styles.matchCardHeader}>
         <Image source={{ uri: item.TeamAImage }} style={styles.teamImage} />
         <Text style={styles.matchTitle}>{item.TeamA} vs {item.TeamB}</Text>
@@ -79,7 +86,7 @@ const SeriesWiseMatchScreen = () => {
       <Text style={styles.matchInfo}>
         {formatMatchDateTime(item.MatchDate, item.MatchTime)} | {item.MatchLocation}
       </Text>
-    </View>
+    </TouchableOpacity>
   );
 
   const formatMatchDateTime = (date: string, time: string): string => {
@@ -95,7 +102,57 @@ const SeriesWiseMatchScreen = () => {
     };
     
     return new Intl.DateTimeFormat('en-GB', options).format(matchDate);
-  };  
+  };
+
+  const handleMatchPress = (match: Match) => {
+    setSelectedMatch(match);
+    setIsModalVisible(true);  // Show modal when match is clicked
+  };
+
+  const handleStartMatch = () => {
+    if (selectedMatch) {
+      // Navigate to the SelectTeamsScreen and pass the MatchId parameter
+      navigation1.navigate('SelectTeamsScreen', { matchId: selectedMatch.MatchId });
+  
+      // Close the modal after navigating
+      setIsModalVisible(false);
+    }
+  };
+
+  const handleDeleteMatch = async () => {
+    if (selectedMatch) {
+      setIsDeleting(true);  // Show loading state
+      try {
+        const response = await fetch('http://192.168.1.3:5000/deleteMatchById', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ matchId: selectedMatch.MatchId }),
+        });
+
+        const result = await response.json();
+        if (response.ok && result.message === 'Delete successful') {
+          Alert.alert('Success', 'Match deleted successfully');
+          // Remove the deleted match from the list
+          const updatedMatches = groupedMatches.Upcoming.filter(
+            (match) => match.MatchId !== selectedMatch.MatchId
+          );
+          setGroupedMatches((prevState) => ({
+            ...prevState,
+            Upcoming: updatedMatches,
+          }));
+        } else {
+          Alert.alert('Error', result.error || 'Failed to delete match');
+        }
+      } catch (error) {
+        Alert.alert('Error', 'Something went wrong');
+      } finally {
+        setIsDeleting(false); // Hide loading state
+        setIsModalVisible(false); // Close modal after action
+      }
+    }
+  };
 
   return (
     <View style={styles.container}>
@@ -126,10 +183,34 @@ const SeriesWiseMatchScreen = () => {
         />
       )}
 
-      {/* Add Match Button */}
-      <TouchableOpacity style={styles.addMatchButton} onPress={handleAddMatchPress}>
-        <Text style={styles.addMatchText}>+ Add Match</Text>
-      </TouchableOpacity>
+      {/* Conditionally Render Add Match Button */}
+      {selectedTab === 'Upcoming' && (
+        <TouchableOpacity style={styles.addMatchButton} onPress={handleAddMatchPress}>
+          <Text style={styles.addMatchText}>+ Add Match</Text>
+        </TouchableOpacity>
+      )}
+
+      {/* Modal for Match Options */}
+      <Modal 
+        visible={isModalVisible} 
+        transparent={true} 
+        animationType="fade" 
+        onRequestClose={() => setIsModalVisible(false)}
+      >
+        <TouchableWithoutFeedback onPress={() => setIsModalVisible(false)}>
+          <View style={styles.modalBackground}>
+            <View style={styles.modalContent}>
+              <Text style={styles.modalTitle}>Choose an Option</Text>
+              <TouchableOpacity onPress={handleStartMatch} style={styles.modalButton}>
+                <Text style={styles.modalButtonText}>Start Match</Text>
+              </TouchableOpacity>
+              <TouchableOpacity onPress={handleDeleteMatch} style={styles.modalButton}>
+                <Text style={styles.modalButtonText}>Delete Match</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </TouchableWithoutFeedback>
+      </Modal>
     </View>
   );
 };
@@ -225,6 +306,35 @@ const styles = StyleSheet.create({
     fontSize: 18, 
     fontWeight: 'bold', 
     color: '#ffffff'  // Set text color to black
+  },
+  modalBackground: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+  },
+  modalContent: {
+    width: 300,
+    padding: 20,
+    backgroundColor: 'white',
+    borderRadius: 10,
+    alignItems: 'center',
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginBottom: 20,
+  },
+  modalButton: {
+    paddingVertical: 10,
+    paddingHorizontal: 30,
+    backgroundColor: 'rgba(30, 30, 30, 0.8)',
+    borderRadius: 5,
+    marginBottom: 10,
+  },
+  modalButtonText: {
+    fontSize: 16,
+    color: 'white',
   },
 });
 
