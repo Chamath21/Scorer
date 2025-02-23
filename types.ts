@@ -6,8 +6,9 @@ export type RootStackParamList = {
   SeriesWiseMatchScreen: { seriesId: string };
   SelectTeamScreen: {seriesId: string | null, team: string };
   AfterSelectAddMatchDetailsScreen: {seriesId: string | null, teamId: string | null};
-  AddPlayersScreen:{teamId: string}
-  SelectTeamsScreen:{matchId: number}
+  AddPlayersScreen:{teamId: string};
+  MatchTossScreen:{matchId: number};
+  ScoringScreen:{matchId: number};
 };
 
 // Type for navigation in each screen
@@ -36,9 +37,14 @@ export type AddPlayersScreenNavigationProp = NativeStackNavigationProp<
   'AddPlayersScreen'
 >;
 
-export type SelectTeamsScreenNavigationProp = NativeStackNavigationProp<
+export type MatchTossScreenNavigationProp = NativeStackNavigationProp<
   RootStackParamList,
-  'SelectTeamsScreen'
+  'MatchTossScreen'
+>;
+
+export type ScoringScreenNavigationProp = NativeStackNavigationProp<
+  RootStackParamList,
+  'ScoringScreen'
 >;
 
 // Define a type for navigation that can be used for both screens (AddMatchScreen and SelectTeamScreen)

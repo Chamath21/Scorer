@@ -1,7 +1,16 @@
 import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, ScrollView } from 'react-native';
+import { useRoute, RouteProp } from '@react-navigation/native';
+import { RootStackParamList } from '../types';
+
+// Define the route prop type
+type MatchScoringScreenRouteProp = RouteProp<RootStackParamList, 'ScoringScreen'>;
 
 const MatchScoringScreen = () => {
+  // Access matchId from route params
+  const route = useRoute<MatchScoringScreenRouteProp>();
+  const { matchId } = route.params;
+
   const [score, setScore] = useState(0);
   const [wickets, setWickets] = useState(0);
   const [overs, setOvers] = useState(0.0);
@@ -26,6 +35,9 @@ const MatchScoringScreen = () => {
           <Text style={styles.score}>{score} - {wickets}</Text>
           <Text style={styles.subText}>Overs: {overs} | Extras: {extras}</Text>
         </View>
+
+        {/* Displaying matchId */}
+        <Text style={styles.matchId}>Match ID: {matchId}</Text> {/* Show the matchId in the UI */}
       </ScrollView>
 
       {/* Button Section */}
@@ -91,6 +103,12 @@ const styles = StyleSheet.create({
   subText: {
     fontSize: 16,
     color: 'gray',
+  },
+  matchId: {
+    fontSize: 16,
+    color: 'blue',
+    marginTop: 20,
+    fontWeight: 'bold',
   },
   buttonSection: {
     width: '100%',

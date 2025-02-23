@@ -12,7 +12,7 @@ import {
   TouchableWithoutFeedback 
 } from 'react-native';
 import { useRoute, RouteProp, useNavigation } from '@react-navigation/native';
-import { AfterSelectAddMatchDetailsNavigationProp, RootStackParamList, SelectTeamsScreenNavigationProp } from '../types';
+import { AfterSelectAddMatchDetailsNavigationProp, MatchTossScreenNavigationProp, RootStackParamList } from '../types';
 
 interface Match {
   MatchLocation: string;
@@ -43,7 +43,7 @@ const SeriesWiseMatchScreen = () => {
   const [isDeleting, setIsDeleting] = useState(false); // Track the deleting state
 
   const navigation = useNavigation<AfterSelectAddMatchDetailsNavigationProp>();
-  const navigation1 = useNavigation<SelectTeamsScreenNavigationProp>();
+  const navigation1 = useNavigation<MatchTossScreenNavigationProp>();
 
   const handleAddMatchPress = () => {
     navigation.navigate('AfterSelectAddMatchDetailsScreen', { seriesId: seriesId, teamId: null });
@@ -112,7 +112,7 @@ const SeriesWiseMatchScreen = () => {
   const handleStartMatch = () => {
     if (selectedMatch) {
       // Navigate to the SelectTeamsScreen and pass the MatchId parameter
-      navigation1.navigate('SelectTeamsScreen', { matchId: selectedMatch.MatchId });
+      navigation1.navigate('MatchTossScreen', { matchId: selectedMatch.MatchId });
   
       // Close the modal after navigating
       setIsModalVisible(false);

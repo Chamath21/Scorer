@@ -7,7 +7,8 @@ import { RootStackParamList } from './types'; // Import stack type
 import SelectTeamScreen from './screens/SelectTeam';
 import AfterSelectAddMatchDetailsScreen from './screens/AfterSelectAddMatchDetailsScreen';
 import AddPlayersScreen from './screens/AddPlayersScreen';
-import SelectTeamsScreen from './screens/SelectTeamsScreen';
+import MatchTossScreen from './screens/MatchTossScreen';
+import ScoringScreen from './screens/ScoringScreen';
 
 const Stack = createNativeStackNavigator<RootStackParamList>(); // ✅ Type the navigator
 
@@ -20,7 +21,8 @@ const App = () => {
         <Stack.Screen name="SelectTeamScreen" component={SelectTeamScreen} />
         <Stack.Screen name="AfterSelectAddMatchDetailsScreen" component={AfterSelectAddMatchDetailsScreen}/>
         <Stack.Screen name="AddPlayersScreen" component={AddPlayersScreen} />
-        <Stack.Screen name="SelectTeamsScreen" component={SelectTeamsScreen} />
+        <Stack.Screen name="MatchTossScreen" component={MatchTossScreen} />
+        <Stack.Screen name="ScoringScreen" component={ScoringScreen} />
       </Stack.Navigator>
     </NavigationContainer>
   );
