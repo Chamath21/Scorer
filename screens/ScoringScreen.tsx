@@ -58,8 +58,6 @@ const MatchScoringScreen = () => {
         const response = await axios.get(`${BASE_URL}/get_matchstartingdata?matchId=${matchId}`);
         const { batsmen, bowlers, totalScore, wickets, overCount, ballsForOver } = response.data;
 
-        
-
         console.log("API Response: ", response.data); // Debugging log
         const initializedBatsmen = batsmen.map((batsman: any) => ({
           ...batsman,
@@ -120,11 +118,12 @@ const MatchScoringScreen = () => {
 
     // Update balls in over and calculate overs
     setBallsInOver((prevBalls) => {
+      console.log('previous balls', prevBalls)
         
-        const newBalls = prevBalls + 1;
+      const newBalls = Number(prevBalls) + 1; // Convert prevBalls to a number before adding
         if (newBalls === 6) {
             // Reset balls in over
-            setOvers((prevOvers) => prevOvers + 1);
+            setOvers((prevOvers) => Number(prevOvers) + 1);
             return 0; // Reset balls after 6
         }
         return newBalls;
