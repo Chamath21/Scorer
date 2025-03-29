@@ -13,6 +13,7 @@ import {
 } from 'react-native';
 import { useRoute, RouteProp, useNavigation } from '@react-navigation/native';
 import { AfterSelectAddMatchDetailsNavigationProp, MatchTossScreenNavigationProp, RootStackParamList } from '../types';
+import { BASE_URL } from '../App';
 
 interface Match {
   MatchLocation: string;
@@ -56,7 +57,7 @@ const SeriesWiseMatchScreen = () => {
   const fetchMatches = async () => {
     setLoading(true);
     try {
-      const response = await fetch(`http://192.168.1.3:5000/get_SeriesWisematches?seriesId=${seriesId}`);
+      const response = await fetch(`${BASE_URL}/get_SeriesWisematches?seriesId=${seriesId}`);
       const data = await response.json();
 
       const grouped = {
@@ -123,7 +124,7 @@ const SeriesWiseMatchScreen = () => {
     if (selectedMatch) {
       setIsDeleting(true);  // Show loading state
       try {
-        const response = await fetch('http://192.168.1.3:5000/deleteMatchById', {
+        const response = await fetch(`${BASE_URL}/deleteMatchById`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',

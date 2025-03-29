@@ -3,34 +3,33 @@ import { View, Text, StyleSheet, Modal, TouchableOpacity, Image, Alert } from 'r
 import { useRoute, useNavigation } from '@react-navigation/native';
 import { RouteProp } from '@react-navigation/native';
 import axios from 'axios';
-import { RootStackParamList, ScoringScreenNavigationProp } from '../types'; // Adjust path if needed
+import { RootStackParamList, SelectBattersScreenNavigationProp } from '../types'; // Adjust path if needed
+import { BASE_URL } from '../App';
 
 type MatchTossScreenRouteProp = RouteProp<RootStackParamList, 'MatchTossScreen'>;
 
-// Define the Team type based on the data structure you're using
 interface Team {
   TeamName: string;
   TeamPictureUrl: string;
 }
 
 const MatchTossScreen = () => {
-  const route = useRoute<MatchTossScreenRouteProp>(); // Use the correct type here
+  const route = useRoute<MatchTossScreenRouteProp>();
   const navigation = useNavigation();
-  const navigation1 = useNavigation<ScoringScreenNavigationProp>();
-  const { matchId } = route.params;  // Now matchId is recognized as part of params
+  const navigation1 = useNavigation<SelectBattersScreenNavigationProp>();
+  const { matchId } = route.params;
 
-  const [matchDetails, setMatchDetails] = useState<any>(null); // Replace 'any' with your type if needed
-  const [selectedTeam, setSelectedTeam] = useState<Team | null>(null); // Set the type for selectedTeam
-  const [highlightedTeam, setHighlightedTeam] = useState<string | null>(null); // Track highlighted team
-  const [selectedOption, setSelectedOption] = useState<string | null>(null); // Track selected option
-  const [highlightedOption, setHighlightedOption] = useState<string | null>(null); // Track highlighted option
+  const [matchDetails, setMatchDetails] = useState<any>(null);
+  const [selectedTeam, setSelectedTeam] = useState<Team | null>(null);
+  const [highlightedTeam, setHighlightedTeam] = useState<string | null>(null);
+  const [selectedOption, setSelectedOption] = useState<string | null>(null);
+  const [highlightedOption, setHighlightedOption] = useState<string | null>(null);
   const [isModalVisible, setIsModalVisible] = useState(true);
 
   useEffect(() => {
-    // Fetch match details based on matchId
     const fetchMatchDetails = async () => {
       try {
-        const response = await axios.get(`http://192.168.1.3:5000/get_MatchDetailsByMatchId?matchId=${matchId}`);
+        const response = await axios.get(`${BASE_URL}/get_MatchDetailsByMatchId?matchId=${matchId}`);
         if (response.data.length > 0) {
           setMatchDetails(response.data[0]);
         }
@@ -42,15 +41,14 @@ const MatchTossScreen = () => {
     fetchMatchDetails();
   }, [matchId]);
 
-  // Define handleTeamSelect with a typed parameter 'team' of type Team
   const handleTeamSelect = (team: Team) => {
     setSelectedTeam(team);
-    setHighlightedTeam(team.TeamName); // Highlight the selected team
+    setHighlightedTeam(team.TeamName);
   };
 
   const handleOptionSelect = (option: string) => {
     setSelectedOption(option);
-    setHighlightedOption(option); // Highlight the selected option
+    setHighlightedOption(option);
   };
 
   const handleStartScoring = async () => {
@@ -65,17 +63,18 @@ const MatchTossScreen = () => {
     }
 
     try {
-      // Send API request to save the toss information (team and option)
-      const response = await axios.post('http://192.168.1.3:5000/saveTossDetails', {
+      const response = await axios.post(`${BASE_URL}/saveTossDetails`, {
         matchId: matchId,
-        teamName: selectedTeam.TeamName,  // Assuming the team name or team ID is passed
+        teamName: selectedTeam.TeamName,
         selectedOption: selectedOption,
       });
 
       if (response) {
-        // If the API call is successful, navigate to the ScoringScreen
-        navigation1.navigate('ScoringScreen', {matchId: matchId,});
-        setIsModalVisible(false); // Close the modal
+        navigation1.navigate('SelectBattersScreen', {
+          matchId: matchId,
+          BattingTeamId: selectedTeam.TeamName, 
+        });
+        setIsModalVisible(false);
       } else {
         Alert.alert('Error', 'Failed to save toss details.');
       }
@@ -103,18 +102,15 @@ const MatchTossScreen = () => {
                 <TouchableOpacity
                   style={[
                     styles.teamOption,
-                    highlightedTeam === matchDetails.Home && styles.selectedTeam, // Apply border if selected
+                    highlightedTeam === matchDetails.Home && styles.selectedTeam,
                   ]}
                   onPress={() => handleTeamSelect({ TeamName: matchDetails.Home, TeamPictureUrl: matchDetails.HomePictureUrl })}
                 >
-                  <Image
-                    source={{ uri: matchDetails.HomePictureUrl }}
-                    style={styles.teamImage}
-                  />
+                  <Image source={{ uri: matchDetails.HomePictureUrl }} style={styles.teamImage} />
                   <Text
                     style={[
                       styles.teamName,
-                      highlightedTeam === matchDetails.Home && styles.highlightedTeam, // Apply highlight when selected
+                      highlightedTeam === matchDetails.Home && styles.highlightedTeam,
                     ]}
                   >
                     {matchDetails.Home}
@@ -125,18 +121,15 @@ const MatchTossScreen = () => {
                 <TouchableOpacity
                   style={[
                     styles.teamOption,
-                    highlightedTeam === matchDetails.Visitors && styles.selectedTeam, // Apply border if selected
+                    highlightedTeam === matchDetails.Visitors && styles.selectedTeam,
                   ]}
                   onPress={() => handleTeamSelect({ TeamName: matchDetails.Visitors, TeamPictureUrl: matchDetails.VisitorsPictureUrl })}
                 >
-                  <Image
-                    source={{ uri: matchDetails.VisitorsPictureUrl }}
-                    style={styles.teamImage}
-                  />
+                  <Image source={{ uri: matchDetails.VisitorsPictureUrl }} style={styles.teamImage} />
                   <Text
                     style={[
                       styles.teamName,
-                      highlightedTeam === matchDetails.Visitors && styles.highlightedTeam, // Apply highlight when selected
+                      highlightedTeam === matchDetails.Visitors && styles.highlightedTeam,
                     ]}
                   >
                     {matchDetails.Visitors}
@@ -150,8 +143,8 @@ const MatchTossScreen = () => {
                   <TouchableOpacity
                     style={[
                       styles.optionButton,
-                      highlightedOption === 'BAT' && styles.highlightedOption, // Apply highlight when selected
-                      highlightedOption === 'BAT' && styles.selectedOption, // Apply border when selected
+                      highlightedOption === 'BAT' && styles.highlightedOption,
+                      highlightedOption === 'BAT' && styles.selectedOption,
                     ]}
                     onPress={() => handleOptionSelect('BAT')}
                   >
@@ -160,8 +153,8 @@ const MatchTossScreen = () => {
                   <TouchableOpacity
                     style={[
                       styles.optionButton,
-                      highlightedOption === 'BOWL' && styles.highlightedOption, // Apply highlight when selected
-                      highlightedOption === 'BOWL' && styles.selectedOption, // Apply border when selected
+                      highlightedOption === 'BOWL' && styles.highlightedOption,
+                      highlightedOption === 'BOWL' && styles.selectedOption,
                     ]}
                     onPress={() => handleOptionSelect('BOWL')}
                   >
@@ -224,7 +217,7 @@ const styles = StyleSheet.create({
   },
   selectedTeam: {
     borderWidth: 2,
-    borderColor: 'rgba(30, 30, 30, 0.8)', // Border color when team is selected
+    borderColor: 'rgba(30, 30, 30, 0.8)',
     borderRadius: 5,
   },
   teamImage: {
@@ -238,7 +231,7 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   highlightedTeam: {
-    color: 'rgba(30, 30, 30, 0.8)', // Highlight color for selected team
+    color: 'rgba(30, 30, 30, 0.8)',
   },
   optionContainer: {
     flexDirection: 'row',
@@ -253,10 +246,10 @@ const styles = StyleSheet.create({
   },
   selectedOption: {
     borderWidth: 2,
-    borderColor: 'rgba(30, 30, 30, 0.8)', // Border color when option is selected
+    borderColor: 'rgba(30, 30, 30, 0.8)',
   },
   highlightedOption: {
-    backgroundColor: 'rgba(255, 255, 255, 0.8)', // Highlight color for selected option
+    backgroundColor: 'rgba(255, 255, 255, 0.8)',
   },
   optionText: {
     color: '#000',

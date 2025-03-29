@@ -9,8 +9,15 @@ import AfterSelectAddMatchDetailsScreen from './screens/AfterSelectAddMatchDetai
 import AddPlayersScreen from './screens/AddPlayersScreen';
 import MatchTossScreen from './screens/MatchTossScreen';
 import ScoringScreen from './screens/ScoringScreen';
+import SelectBattersScreen from './screens/SelectBattersScreen';
+import SelectBowlersScreen from './screens/SelectBowlersScreen';
+import OutScreen from './screens/OutScreen';
+import SelectNewBatterScreen from './screens/SelectNewBatterScreen';
 
 const Stack = createNativeStackNavigator<RootStackParamList>(); // ✅ Type the navigator
+
+export const BASE_URL = 'http://192.168.1.3:5000';  
+
 
 const App = () => {
   return (
@@ -23,6 +30,10 @@ const App = () => {
         <Stack.Screen name="AddPlayersScreen" component={AddPlayersScreen} />
         <Stack.Screen name="MatchTossScreen" component={MatchTossScreen} />
         <Stack.Screen name="ScoringScreen" component={ScoringScreen} />
+        <Stack.Screen name="SelectBattersScreen" component={SelectBattersScreen} />
+        <Stack.Screen name="SelectBowlersScreen" component={SelectBowlersScreen} />
+        <Stack.Screen name="OutScreen" component={OutScreen} />
+        <Stack.Screen name="SelectNewBatterScreen" component={SelectNewBatterScreen} />
       </Stack.Navigator>
     </NavigationContainer>
   );

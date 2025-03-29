@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, TextInput, FlatList, Image, StyleSheet, TouchableOpacity, Modal, Button, Alert } from 'react-native';
 import { AddOrSelectTeamScreenNavigationProp } from '../types';
+import { BASE_URL } from '../App';
 
 type Team = {
   TeamId: string;
@@ -28,7 +29,7 @@ const SelectTeamScreen: React.FC<SelectTeamScreenProps> = ({ navigation, route }
   useEffect(() => {
     const fetchTeamDetails = async () => {
       try {
-        const response = await fetch('http://192.168.1.3:5000/get_TeamDetails');
+        const response = await fetch(`${BASE_URL}/get_TeamDetails`);
         const data = await response.json();
         if (response.ok) {
           setTeams(data);
@@ -94,7 +95,7 @@ const SelectTeamScreen: React.FC<SelectTeamScreenProps> = ({ navigation, route }
     };
 
     try {
-      const response = await fetch('http://192.168.1.3:5000/add_teams', {
+      const response = await fetch(`${BASE_URL}/add_teams`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
