@@ -13,10 +13,11 @@ import SelectBattersScreen from './screens/SelectBattersScreen';
 import SelectBowlersScreen from './screens/SelectBowlersScreen';
 import OutScreen from './screens/OutScreen';
 import SelectNewBatterScreen from './screens/SelectNewBatterScreen';
+import SelectNewBowlersScreen from './screens/SelectNewBowlerScreen';
 
 const Stack = createNativeStackNavigator<RootStackParamList>(); // ✅ Type the navigator
 
-export const BASE_URL = 'http://192.168.1.3:5000';  
+export const BASE_URL = 'http://192.168.1.6:5000';  
 
 
 const App = () => {
@@ -34,6 +35,7 @@ const App = () => {
         <Stack.Screen name="SelectBowlersScreen" component={SelectBowlersScreen} />
         <Stack.Screen name="OutScreen" component={OutScreen} />
         <Stack.Screen name="SelectNewBatterScreen" component={SelectNewBatterScreen} />
+        <Stack.Screen name="SelectNewBowlersScreen" component={SelectNewBowlersScreen} />
       </Stack.Navigator>
     </NavigationContainer>
   );

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, ScrollView, Alert } from 'react-native';
 import { useRoute, RouteProp, useNavigation } from '@react-navigation/native';
-import { OutScreenNavigationProp, RootStackParamList } from '../types';
+import { OutScreenNavigationProp, RootStackParamList, SelectNewBowlersScreenRouteProp } from '../types';
 import axios from 'axios';
 import { BASE_URL } from '../App';
 
@@ -41,6 +41,7 @@ const MatchScoringScreen = () => {
   const [extras, setExtras] = useState<number>(0);
   const [history, setHistory] = useState<{ score: number; wickets: number }[]>([]);
   const navigation = useNavigation<OutScreenNavigationProp>();
+  const navigation1 = useNavigation<SelectNewBowlersScreenRouteProp>();
   const [isExtra, setIsExtra] = useState<boolean>(false);
   const [isBowlerExtra, setIsBowlerExtra] = useState<boolean>(false);
 
@@ -111,6 +112,7 @@ const MatchScoringScreen = () => {
     if (!isExtra) {
         striker.runs += runs;
         striker.balls += 1;
+        currentBowler.runs +=runs
         if (runs === 4) {
             striker.fours += 1;
             isBoundary = true; // Mark as boundary if it's a 4
@@ -132,6 +134,8 @@ const MatchScoringScreen = () => {
         if (newBalls === 6) {
             // Reset balls in over
             setOvers((prevOvers) => Number(prevOvers) + 1);
+            
+            navigation.navigate('SelectNewBowlersScreen', { matchId: matchId });
             return 0; // Reset balls after 6
         }
         return newBalls;
