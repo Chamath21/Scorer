@@ -25,6 +25,7 @@ type Bowler = {
   bowlerName: string;
   bowlingTeamId: number;
   overs: number;
+  balls: number;
   maidens: number;
   runs: number;
   wickets: number;
@@ -41,6 +42,7 @@ const MatchScoringScreen = () => {
   const [history, setHistory] = useState<{ score: number; wickets: number }[]>([]);
   const navigation = useNavigation<OutScreenNavigationProp>();
   const [isExtra, setIsExtra] = useState<boolean>(false);
+  const [isBowlerExtra, setIsBowlerExtra] = useState<boolean>(false);
 
   // State for batsmen and to track the striker
   const [batsmen, setBatsmen] = useState<Batsman[]>([]);
@@ -51,6 +53,9 @@ const MatchScoringScreen = () => {
 
   // State for balls in over
   const [ballsInOver, setBallsInOver] = useState<number>(0);
+
+  const [bowlerOvers, setBowlerOvers] = useState<number>(0.0);
+  const [bowlerballs, setBowlerballs] = useState<number>(0.0);
 
   useEffect(() => {
     const fetchMatchData = async () => {
@@ -70,6 +75,7 @@ const MatchScoringScreen = () => {
         const initializedBowlers = bowlers.map((bowler: any) => ({
           ...bowler,
           overs: bowler.overs || 0,
+          balls: bowler.overs || 0,
           maidens: bowler.maidens || 0,
           runs: bowler.runs || 0,
           wickets: bowler.wickets || 0,
@@ -81,6 +87,8 @@ const MatchScoringScreen = () => {
         setWickets(wickets || 0);
         setOvers(overCount || 0);
         setBallsInOver(ballsForOver || 0)
+        setBowlerballs(bowlers[0].balls || 0)
+        setBowlerOvers(bowlers[0].overs || 0)
       } catch (error) {
         console.error("Error fetching match data: ", error);
       }
@@ -129,6 +137,18 @@ const MatchScoringScreen = () => {
         return newBalls;
     });
 
+    setBowlerballs((prevBalls) => {
+      console.log('previous balls', prevBalls)
+        
+      const newBalls = Number(prevBalls) + 1; // Convert prevBalls to a number before adding
+        if (newBalls === 6) {
+            // Reset balls in over
+            setBowlerOvers((prevOvers) => Number(prevOvers) + 1);
+            return 0; // Reset balls after 6
+        }
+        return newBalls;
+    });
+
     // Rotate striker if runs are odd and it's not an extra
     if (!isExtra && runs % 2 !== 0) rotateBatsmen();
 
@@ -150,7 +170,10 @@ const MatchScoringScreen = () => {
             extraRuns: isExtra ? runs : 0, // Only pass extra runs if isExtra is true
             isBoundary: isBoundary,
             overs: overs,
-            ballsInOver: ballsInOver
+            ballsInOver: ballsInOver,
+            isBowlerExtra: isBowlerExtra,
+            bowlersballs : bowlerballs,
+            bowlerOvers: bowlerOvers
         });
         console.log('Run recorded successfully');
     } catch (error) {
@@ -178,6 +201,7 @@ const MatchScoringScreen = () => {
 
   const handlePenaltyRuns = () => {
     setScore(score + 5);
+    setIsBowlerExtra(false);
   };
 
   const undoAction = () => {
@@ -249,7 +273,7 @@ const MatchScoringScreen = () => {
             return (
               <View key={bowler.bowlerId} style={styles.tableRow}>
                 <Text style={styles.tableRowText}>{bowler.bowlerName}</Text>
-                <Text style={styles.tableRowText}>{bowler.overs}</Text>
+                <Text style={styles.tableRowText}>{bowlerOvers}.{bowlerballs}</Text>
                 <Text style={styles.tableRowText}>{bowler.maidens}</Text>
                 <Text style={styles.tableRowText}>{bowler.runs}</Text>
                 <Text style={styles.tableRowText}>{bowler.wickets}</Text>
@@ -263,7 +287,11 @@ const MatchScoringScreen = () => {
       <View style={styles.buttonSection}>
         <View style={styles.buttonsContainer}>
           {[1, 2, 3, 4, 6].map((num) => (
-            <TouchableOpacity key={num} style={styles.button} onPress={() => addRuns(num)}>
+            <TouchableOpacity key={num} style={styles.button} onPress={() => {
+              addRuns(num)
+              setIsBowlerExtra(false);
+            }
+            }>
               <Text style={styles.buttonText}>{num}</Text>
             </TouchableOpacity>
           ))}
@@ -276,11 +304,17 @@ const MatchScoringScreen = () => {
               style={styles.button}
               onPress={() => {
                 if (label === 'Out') {
-                  handleWicket();  // Handle wicket scenario
-                } else {
+                  handleWicket(); 
+                  setIsBowlerExtra(false); 
+                  setIsExtra(false);
+                } else if (label === 'WD' || label === 'NB'){
                   setIsExtra(true);  // Set isExtra to true for extras
+                  setIsBowlerExtra(true);
                   setExtras(extras + 1); // Update the extras score
                   addRuns(1);  // Assuming 1 run for extras like WD or NB
+                }
+                else if (label === 'Bye' || label === 'LB') {
+                  setIsBowlerExtra(false);  // Handle wicket scenario
                 }
               }}
             >
