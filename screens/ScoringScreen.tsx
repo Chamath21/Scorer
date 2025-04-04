@@ -294,10 +294,16 @@ const MatchScoringScreen = () => {
     console.log('More options');
   };
 
+  const handleMatchCentreClick = () => {
+    navigation.navigate('ScoreCardScreen', { matchId });
+  };
+
   return (
     <View style={styles.container}>
       <ScrollView contentContainerStyle={styles.scrollContainer}>
-        <Text style={styles.title}>Match Centre</Text>
+      <TouchableOpacity onPress={handleMatchCentreClick}>
+          <Text style={styles.title}>Match Centre</Text>
+        </TouchableOpacity>
         <Text style={styles.teamName}>Team A vs Team B</Text>
         <Text style={styles.innings}>1st Innings</Text>
 
@@ -384,6 +390,9 @@ const MatchScoringScreen = () => {
         </TouchableOpacity>
         <TouchableOpacity style={styles.button} onPress={() => extraButtonHandler('Leg Bye')}>
           <Text style={styles.buttonText}>Leg Bye</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.button} onPress={() => extraButtonHandler('Out')}>
+          <Text style={styles.buttonText}>Out</Text>
         </TouchableOpacity>
       </View>
 

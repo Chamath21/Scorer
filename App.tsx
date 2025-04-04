@@ -14,10 +14,11 @@ import SelectBowlersScreen from './screens/SelectBowlersScreen';
 import OutScreen from './screens/OutScreen';
 import SelectNewBatterScreen from './screens/SelectNewBatterScreen';
 import SelectNewBowlersScreen from './screens/SelectNewBowlerScreen';
+import ScoreCardScreen from './screens/ScoreCardScreen';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
-export const BASE_URL = 'http://192.168.1.9:5000';  
+export const BASE_URL = 'http://192.168.1.7:5000';  
 
 
 const App = () => {
@@ -36,6 +37,7 @@ const App = () => {
         <Stack.Screen name="OutScreen" component={OutScreen} />
         <Stack.Screen name="SelectNewBatterScreen" component={SelectNewBatterScreen} />
         <Stack.Screen name="SelectNewBowlersScreen" component={SelectNewBowlersScreen} />
+        <Stack.Screen name="ScoreCardScreen" component={ScoreCardScreen} />
       </Stack.Navigator>
     </NavigationContainer>
   );
