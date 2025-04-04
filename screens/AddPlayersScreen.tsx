@@ -30,7 +30,6 @@ const AddPlayersScreen: React.FC<AddPlayersScreenProps> = ({ route, navigation }
     const [bowlingStyle, setBowlingStyle] = useState('1'); 
     const [isWicketKeeper, setIsWicketKeeper] = useState(false); 
     const [birthdate, setBirthdate] = useState(''); 
-    const [isDatePickerVisible, setDatePickerVisible] = useState(false); 
 
     useEffect(() => {
         const fetchPlayers = async () => {
@@ -113,11 +112,6 @@ const AddPlayersScreen: React.FC<AddPlayersScreenProps> = ({ route, navigation }
         }
     };
 
-    // NEED TO WORK ON THIS, DOESN'T WORK AT THE MOMENT
-    const showDatePicker = () => {
-        setDatePickerVisible(true);
-    };
-
     const handleConfirmDate = (date: Date) => {
         const selectedDate = moment(date);
         const currentDate = moment();
@@ -128,7 +122,6 @@ const AddPlayersScreen: React.FC<AddPlayersScreenProps> = ({ route, navigation }
         }
 
         setBirthdate(selectedDate.format('YYYY-MM-DD'));
-        setDatePickerVisible(false); 
     };
 
     const renderPlayer = ({ item }: { item: Player }) => (
@@ -225,23 +218,6 @@ const AddPlayersScreen: React.FC<AddPlayersScreenProps> = ({ route, navigation }
                             thumbColor={isWicketKeeper ? 'grey' : 'grey'} 
                             trackColor={{ false: 'grey', true: 'grey' }} 
                         />
-
-                        {/* Birthdate Picker */}
-                        <Text style={styles.modalLabel}>Birthdate</Text>
-                        <TouchableOpacity style={styles.datePickerButton} onPress={showDatePicker}>
-                            <Text style={styles.datePickerText}>
-                                {birthdate ? birthdate : 'Select Birthdate'}
-                            </Text>
-                        </TouchableOpacity>
-
-                        {/* Date Picker Modal */}
-                        <DateTimePickerModal
-                            isVisible={isDatePickerVisible}
-                            mode="date"
-                            onConfirm={handleConfirmDate}
-                            onCancel={() => setDatePickerVisible(false)}
-                        />
-
                         <Button title="Save Player" onPress={handleAddPlayer} color="grey" />
                         <Button title="Cancel" onPress={() => setShowModal(false)} color="red" />
                     </View>

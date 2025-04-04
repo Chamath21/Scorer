@@ -44,6 +44,10 @@ const MatchScoringScreen = () => {
   const navigation1 = useNavigation<SelectNewBowlersScreenRouteProp>();
   const [isExtra, setIsExtra] = useState<boolean>(false);
   const [isBowlerExtra, setIsBowlerExtra] = useState<boolean>(false);
+  const [isOverCompleted, setIsOverCompleted] = useState<boolean | null>(null);
+  const [extraType, setExtraType] = useState<number | 0>(0);
+
+
 
   // State for batsmen and to track the striker
   const [batsmen, setBatsmen] = useState<Batsman[]>([]);
@@ -98,94 +102,159 @@ const MatchScoringScreen = () => {
     fetchMatchData();
   }, [matchId]); // Runs when matchId changes
 
+  useEffect(() => {
+    if (matchId) {
+      const fetchOverCompletionStatus = async () => {
+        try {
+          const response = await axios.get(`${BASE_URL}/get_IsOverCompleted`, {
+            params: { matchId }
+          });
+          setIsOverCompleted(response.data.IsOverCompleted || 1);
+        } catch (error) {
+          console.error('Error fetching over completion status:', error);
+          Alert.alert('Error', 'An error occurred while fetching over completion status.');
+        }
+      };
+  
+      fetchOverCompletionStatus();
+      console.log(isOverCompleted)
+      if(isOverCompleted){
+        navigation.navigate('SelectNewBowlersScreen', { matchId: matchId });
+      }
+    }
+  }, [matchId]);
+
   const rotateBatsmen = () => {
     setStrikerIndex((prevIndex) => (prevIndex === 0 ? 1 : 0));
   };
 
-  const addRuns = async (runs: number) => {
+  const addRuns = async (runs: number, isExtra: boolean = false) => {
     const updatedBatsmen = [...batsmen];
     const striker = updatedBatsmen[strikerIndex];
     const currentBowler = bowlers[0];
-
-    // Update the batsman's stats only if it's not an extra
+  
     let isBoundary = false;
+    
+    // Update the batsman's stats only if it's not an extra
     if (!isExtra) {
-        striker.runs += runs;
-        striker.balls += 1;
-        currentBowler.runs +=runs
-        if (runs === 4) {
-            striker.fours += 1;
-            isBoundary = true; // Mark as boundary if it's a 4
-        }
-        if (runs === 6) {
-            striker.sixes += 1;
-            isBoundary = true; // Mark as boundary if it's a 6
-        }
+      striker.runs += runs;
+      striker.balls += 1;
+      currentBowler.runs += runs;
+  
+      if (runs === 4) {
+        striker.fours += 1;
+        isBoundary = true;
+      }
+      if (runs === 6) {
+        striker.sixes += 1;
+        isBoundary = true;
+      }
+    } else {
+      // For extras, just update the runs (without increasing ball or striker stats)
+      setExtras((prevExtras) => prevExtras + runs);
     }
 
+    if (isBowlerExtra) {
+      currentBowler.runs += runs;  
+    } 
+    if (isBowlerExtra && extraType == 2){
+      striker.balls += 1;
+    }
+      else {
+      // For extras, just update the runs (without increasing ball or striker stats)
+      setExtras((prevExtras) => prevExtras + runs);
+    }
+  
     setBatsmen(updatedBatsmen);
     setScore((prevScore) => prevScore + runs);
-
-    // Update balls in over and calculate overs
-    setBallsInOver((prevBalls) => {
-      console.log('previous balls', prevBalls)
-        
-      const newBalls = Number(prevBalls) + 1; // Convert prevBalls to a number before adding
+  
+    if (!isExtra) {
+      setBallsInOver((prevBalls) => {
+        const newBalls = Number(prevBalls) + 1;
         if (newBalls === 6) {
-            // Reset balls in over
-            setOvers((prevOvers) => Number(prevOvers) + 1);
-            
-            navigation.navigate('SelectNewBowlersScreen', { matchId: matchId });
-            return 0; // Reset balls after 6
+          setOvers((prevOvers) => Number(prevOvers) + 1);
+          setBallsInOver(0);
+          navigation1.navigate('SelectNewBowlersScreen', { matchId: matchId });
+          return 0;
         }
         return newBalls;
-    });
-
-    setBowlerballs((prevBalls) => {
-      console.log('previous balls', prevBalls)
-        
-      const newBalls = Number(prevBalls) + 1; // Convert prevBalls to a number before adding
+      });
+  
+      setBowlerballs((prevBalls) => {
+        const newBalls = Number(prevBalls) + 1;
         if (newBalls === 6) {
-            // Reset balls in over
-            setBowlerOvers((prevOvers) => Number(prevOvers) + 1);
-            return 0; // Reset balls after 6
+          setBowlerOvers((prevOvers) => Number(prevOvers) + 1);
+          return 0;
         }
         return newBalls;
-    });
-
-    // Rotate striker if runs are odd and it's not an extra
-    if (!isExtra && runs % 2 !== 0) rotateBatsmen();
-
-    console.log("Balls in Over: ", ballsInOver);  // Check for any mismatch
-
-    try {
-        await axios.post(`${BASE_URL}/AddRuns`, {
-            batsmanId: striker.batsmanId,
-            bowlerId: currentBowler.bowlerId,
-            matchId: matchId,
-            batsmanRuns: striker.runs,
-            batsmanBalls: striker.balls,
-            batsmanFours: striker.fours,
-            batsmanSixes: striker.sixes,
-            runs: runs,
-            battingTeamId: striker.battingTeamId,
-            bowlingTeamId: currentBowler.bowlingTeamId,
-            isExtra: isExtra, // Whether it's an extra
-            extraRuns: isExtra ? runs : 0, // Only pass extra runs if isExtra is true
-            isBoundary: isBoundary,
-            overs: overs,
-            ballsInOver: ballsInOver,
-            isBowlerExtra: isBowlerExtra,
-            bowlersballs : bowlerballs,
-            bowlerOvers: bowlerOvers
-        });
-        console.log('Run recorded successfully');
-    } catch (error) {
-        console.error('Error recording run:', error);
-        Alert.alert('Error', 'An error occurred while recording the run.');
+      });
     }
-};
-
+  
+    if (!isExtra && runs % 2 !== 0) rotateBatsmen();
+  
+    try {
+      await axios.post(`${BASE_URL}/AddRuns`, {
+        batsmanId: striker.batsmanId,
+        bowlerId: currentBowler.bowlerId,
+        matchId: matchId,
+        batsmanRuns: striker.runs,
+        batsmanBalls: striker.balls,
+        batsmanFours: striker.fours,
+        batsmanSixes: striker.sixes,
+        runs: runs,
+        battingTeamId: striker.battingTeamId,
+        bowlingTeamId: currentBowler.bowlingTeamId,
+        isExtra: isExtra, // Whether it's an extra
+        extraRuns: isExtra ? runs : 0, // Only pass extra runs if isExtra is true
+        isBoundary: isBoundary,
+        overs: overs,
+        ballsInOver: ballsInOver,
+        isBowlerExtra: isBowlerExtra,
+        bowlersballs: bowlerballs,
+        bowlerOvers: bowlerOvers,
+        extraType: extraType
+      });
+      console.log('Run recorded successfully');
+    } catch (error) {
+      console.error('Error recording run:', error);
+      Alert.alert('Error', 'An error occurred while recording the run.');
+    }
+  };
+  
+  const extraButtonHandler = (label: string) => {
+    setIsBowlerExtra(true);
+    setIsExtra(true);
+    
+    let currentExtraType = 0;
+  
+    switch (label) {
+      case 'WD':
+        currentExtraType = 1; // WD gets the value 1
+        break;
+      case 'NB':
+        currentExtraType = 2; // NB gets the value 2
+        break;
+      case 'Bye':
+        currentExtraType = 3; // Bye gets the value 3
+        setIsBowlerExtra(false);
+        break;
+      case 'LB':
+        currentExtraType = 4; // LB gets the value 4
+        setIsBowlerExtra(false);
+        break;
+      case 'Out':
+        handleWicket();
+        setIsBowlerExtra(false);
+        setIsExtra(false);
+        currentExtraType = 0;
+        break;
+    }
+  
+    // Now pass the currentExtraType directly to addRuns
+    setExtraType(currentExtraType);  // Update the state
+    addRuns(1, true); // Add runs for the selected extra
+  };
+  
 
   const handleWicket = () => {
     if (batsmen.length > 0) {
@@ -206,6 +275,7 @@ const MatchScoringScreen = () => {
   const handlePenaltyRuns = () => {
     setScore(score + 5);
     setIsBowlerExtra(false);
+    setExtraType(5);
   };
 
   const undoAction = () => {
@@ -292,8 +362,8 @@ const MatchScoringScreen = () => {
         <View style={styles.buttonsContainer}>
           {[1, 2, 3, 4, 6].map((num) => (
             <TouchableOpacity key={num} style={styles.button} onPress={() => {
-              addRuns(num)
               setIsBowlerExtra(false);
+              addRuns(num)
             }
             }>
               <Text style={styles.buttonText}>{num}</Text>
@@ -301,31 +371,21 @@ const MatchScoringScreen = () => {
           ))}
         </View>
 
-        <View style={styles.extraButtonsContainer}>
-          {['WD', 'NB', 'Bye', 'LB', 'Out'].map((label) => (
-            <TouchableOpacity
-              key={label}
-              style={styles.button}
-              onPress={() => {
-                if (label === 'Out') {
-                  handleWicket(); 
-                  setIsBowlerExtra(false); 
-                  setIsExtra(false);
-                } else if (label === 'WD' || label === 'NB'){
-                  setIsExtra(true);  // Set isExtra to true for extras
-                  setIsBowlerExtra(true);
-                  setExtras(extras + 1); // Update the extras score
-                  addRuns(1);  // Assuming 1 run for extras like WD or NB
-                }
-                else if (label === 'Bye' || label === 'LB') {
-                  setIsBowlerExtra(false);  // Handle wicket scenario
-                }
-              }}
-            >
-              <Text style={styles.buttonText}>{label}</Text>
-            </TouchableOpacity>
-          ))}
-        </View>
+        {/* Extra buttons */}
+      <View style={styles.extraButtonsContainer}>
+        <TouchableOpacity style={styles.button} onPress={() => extraButtonHandler('WD')}>
+          <Text style={styles.buttonText}>WD</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.button} onPress={() => extraButtonHandler('NB')}>
+          <Text style={styles.buttonText}>NB</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.button} onPress={() => extraButtonHandler('Bye')}>
+          <Text style={styles.buttonText}>Bye</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.button} onPress={() => extraButtonHandler('Leg Bye')}>
+          <Text style={styles.buttonText}>Leg Bye</Text>
+        </TouchableOpacity>
+      </View>
 
         <View style={styles.extraButtonsContainer}>
           <TouchableOpacity style={styles.button} onPress={() => addRuns(0)}>
@@ -362,8 +422,8 @@ const styles = StyleSheet.create({
     flexGrow: 1,
     alignItems: 'center',
     justifyContent: 'flex-start',
-    paddingTop: 60,
-    paddingBottom: 60,
+    paddingTop: 10,
+    paddingBottom: 10,
   },
   title: {
     fontSize: 24,

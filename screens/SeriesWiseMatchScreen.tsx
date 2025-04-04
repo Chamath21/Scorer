@@ -41,7 +41,7 @@ const SeriesWiseMatchScreen = () => {
   });
   const [selectedMatch, setSelectedMatch] = useState<Match | null>(null); 
   const [isModalVisible, setIsModalVisible] = useState(false); 
-  const [isDeleting, setIsDeleting] = useState(false); // Track the deleting state
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const navigation = useNavigation<AfterSelectAddMatchDetailsNavigationProp>();
   const navigation1 = useNavigation<MatchTossScreenNavigationProp>();

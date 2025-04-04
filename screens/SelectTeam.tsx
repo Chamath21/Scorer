@@ -58,7 +58,7 @@ const SelectTeamScreen: React.FC<SelectTeamScreenProps> = ({ navigation, route }
   };
 
   const handleAddPlayers = (teamId: string) => {
-    navigation.navigate('AddPlayersScreen', { teamId });  // Navigate to AddPlayersScreen with teamId
+    navigation.navigate('AddPlayersScreen', { teamId });  
   };
 
   const renderTeam = ({ item }: { item: Team }) => (

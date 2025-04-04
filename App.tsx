@@ -3,7 +3,7 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { NavigationContainer } from '@react-navigation/native';
 import MatchSeriesScreen from './screens/MatchSeriesScreen';
 import SeriesWiseMatchScreen from './screens/SeriesWiseMatchScreen';
-import { RootStackParamList } from './types'; // Import stack type
+import { RootStackParamList } from './types';
 import SelectTeamScreen from './screens/SelectTeam';
 import AfterSelectAddMatchDetailsScreen from './screens/AfterSelectAddMatchDetailsScreen';
 import AddPlayersScreen from './screens/AddPlayersScreen';
@@ -15,9 +15,9 @@ import OutScreen from './screens/OutScreen';
 import SelectNewBatterScreen from './screens/SelectNewBatterScreen';
 import SelectNewBowlersScreen from './screens/SelectNewBowlerScreen';
 
-const Stack = createNativeStackNavigator<RootStackParamList>(); // ✅ Type the navigator
+const Stack = createNativeStackNavigator<RootStackParamList>();
 
-export const BASE_URL = 'http://192.168.1.6:5000';  
+export const BASE_URL = 'http://192.168.1.9:5000';  
 
 
 const App = () => {

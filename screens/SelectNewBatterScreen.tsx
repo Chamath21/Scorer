@@ -21,6 +21,8 @@ const SelectNewBatterScreen: React.FC = () => {
   const [batters, setBatters] = useState<Batter[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [selectedBatters, setSelectedBatters] = useState<Batter[]>([]);
+  const [isOverCompleted, setIsOverCompleted] = useState<boolean | null>(null); // Track over completion status
+
 
   useEffect(() => {
     if (battingTeamId && matchId) {
@@ -40,7 +42,6 @@ const SelectNewBatterScreen: React.FC = () => {
         fetchBatters();
     }
 }, [battingTeamId, matchId]); // Dependency array added here
-
 
   const handleSelectBatter = (batter: Batter) => {
     const isSelected = selectedBatters.some((b) => b.playerId === batter.playerId);
