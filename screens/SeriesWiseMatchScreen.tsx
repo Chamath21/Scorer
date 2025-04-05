@@ -12,7 +12,8 @@ import {
   TouchableWithoutFeedback 
 } from 'react-native';
 import { useRoute, RouteProp, useNavigation } from '@react-navigation/native';
-import { AfterSelectAddMatchDetailsNavigationProp, RootStackParamList, SelectTeamsScreenNavigationProp } from '../types';
+import { AfterSelectAddMatchDetailsNavigationProp, MatchTossScreenNavigationProp, RootStackParamList } from '../types';
+import { BASE_URL } from '../App';
 
 interface Match {
   MatchLocation: string;
@@ -40,10 +41,10 @@ const SeriesWiseMatchScreen = () => {
   });
   const [selectedMatch, setSelectedMatch] = useState<Match | null>(null); 
   const [isModalVisible, setIsModalVisible] = useState(false); 
-  const [isDeleting, setIsDeleting] = useState(false); // Track the deleting state
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const navigation = useNavigation<AfterSelectAddMatchDetailsNavigationProp>();
-  const navigation1 = useNavigation<SelectTeamsScreenNavigationProp>();
+  const navigation1 = useNavigation<MatchTossScreenNavigationProp>();
 
   const handleAddMatchPress = () => {
     navigation.navigate('AfterSelectAddMatchDetailsScreen', { seriesId: seriesId, teamId: null });
@@ -56,7 +57,7 @@ const SeriesWiseMatchScreen = () => {
   const fetchMatches = async () => {
     setLoading(true);
     try {
-      const response = await fetch(`http://192.168.1.3:5000/get_SeriesWisematches?seriesId=${seriesId}`);
+      const response = await fetch(`${BASE_URL}/get_SeriesWisematches?seriesId=${seriesId}`);
       const data = await response.json();
 
       const grouped = {
@@ -109,10 +110,18 @@ const SeriesWiseMatchScreen = () => {
     setIsModalVisible(true);  // Show modal when match is clicked
   };
 
+  const handleResumeScoring = () => {
+    if (selectedMatch) {
+      // Navigate to ScoringScreen
+      navigation.navigate('ScoringScreen', { matchId: selectedMatch.MatchId });
+      setIsModalVisible(false);  // Close modal after navigating
+    }
+  };
+
   const handleStartMatch = () => {
     if (selectedMatch) {
       // Navigate to the SelectTeamsScreen and pass the MatchId parameter
-      navigation1.navigate('SelectTeamsScreen', { matchId: selectedMatch.MatchId });
+      navigation1.navigate('MatchTossScreen', { matchId: selectedMatch.MatchId });
   
       // Close the modal after navigating
       setIsModalVisible(false);
@@ -123,7 +132,7 @@ const SeriesWiseMatchScreen = () => {
     if (selectedMatch) {
       setIsDeleting(true);  // Show loading state
       try {
-        const response = await fetch('http://192.168.1.3:5000/deleteMatchById', {
+        const response = await fetch(`${BASE_URL}/deleteMatchById`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -201,12 +210,21 @@ const SeriesWiseMatchScreen = () => {
           <View style={styles.modalBackground}>
             <View style={styles.modalContent}>
               <Text style={styles.modalTitle}>Choose an Option</Text>
-              <TouchableOpacity onPress={handleStartMatch} style={styles.modalButton}>
-                <Text style={styles.modalButtonText}>Start Match</Text>
-              </TouchableOpacity>
-              <TouchableOpacity onPress={handleDeleteMatch} style={styles.modalButton}>
-                <Text style={styles.modalButtonText}>Delete Match</Text>
-              </TouchableOpacity>
+              {/* Conditionally render options */}
+              {selectedMatch?.MatchStatus === 2 ? (
+                <TouchableOpacity onPress={handleResumeScoring} style={styles.modalButton}>
+                  <Text style={styles.modalButtonText}>Resume Scoring</Text>
+                </TouchableOpacity>
+              ) : (
+                <>
+                  <TouchableOpacity onPress={handleStartMatch} style={styles.modalButton}>
+                    <Text style={styles.modalButtonText}>Start Match</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity onPress={handleDeleteMatch} style={styles.modalButton}>
+                    <Text style={styles.modalButtonText}>Delete Match</Text>
+                  </TouchableOpacity>
+                </>
+              )}
             </View>
           </View>
         </TouchableWithoutFeedback>

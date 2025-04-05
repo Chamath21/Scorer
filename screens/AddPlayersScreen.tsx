@@ -2,6 +2,7 @@ import moment from 'moment';
 import React, { useState, useEffect } from 'react';
 import { View, Text, TextInput, FlatList, TouchableOpacity, Modal, Button, Alert, Switch, StyleSheet } from 'react-native';
 import DateTimePickerModal from 'react-native-modal-datetime-picker'; // Import the DateTimePickerModal
+import { BASE_URL } from '../App';
 
 type Player = {
     PlayerId: string;
@@ -9,7 +10,7 @@ type Player = {
     battingstyle: string;
     bowlingstyle: string;
     iswicketkeeper: boolean;
-    birthdate: string; // Added birthdate field
+    birthdate: string; 
     teamId: string;
 };
 
@@ -25,16 +26,15 @@ const AddPlayersScreen: React.FC<AddPlayersScreenProps> = ({ route, navigation }
     const [searchQuery, setSearchQuery] = useState('');
     const [showModal, setShowModal] = useState(false);
     const [newPlayerName, setNewPlayerName] = useState('');
-    const [battingStyle, setBattingStyle] = useState('1'); // Default to 'Right' (1)
-    const [bowlingStyle, setBowlingStyle] = useState('1'); // Default to 'Right' (1)
-    const [isWicketKeeper, setIsWicketKeeper] = useState(false); // State to track Wicketkeeper
-    const [birthdate, setBirthdate] = useState(''); // State for storing birthdate
-    const [isDatePickerVisible, setDatePickerVisible] = useState(false); // State for managing the date picker visibility
+    const [battingStyle, setBattingStyle] = useState('1'); 
+    const [bowlingStyle, setBowlingStyle] = useState('1'); 
+    const [isWicketKeeper, setIsWicketKeeper] = useState(false); 
+    const [birthdate, setBirthdate] = useState(''); 
 
     useEffect(() => {
         const fetchPlayers = async () => {
             try {
-                const response = await fetch(`http://192.168.1.3:5000/get_Players?teamId=${teamId}`);
+                const response = await fetch(`${BASE_URL}/get_Players?teamId=${teamId}`);
                 const data = await response.json();
                 if (response.ok) {
                     setPlayers(data);
@@ -71,12 +71,12 @@ const AddPlayersScreen: React.FC<AddPlayersScreenProps> = ({ route, navigation }
             battingstyle: battingStyle,
             bowlingstyle: bowlingStyle,
             iswicketkeeper: isWicketKeeper,
-            birthdate: birthdate, // Include birthdate
-            teamId: teamId, // Add teamId to the player data
+            birthdate: birthdate, 
+            teamId: teamId, 
         };
 
         try {
-            const response = await fetch('http://192.168.1.3:5000/save_player', {
+            const response = await fetch(`${BASE_URL}/save_player`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -101,7 +101,7 @@ const AddPlayersScreen: React.FC<AddPlayersScreenProps> = ({ route, navigation }
                 setBattingStyle('1');
                 setBowlingStyle('1');
                 setIsWicketKeeper(false);
-                setBirthdate(''); // Reset birthdate
+                setBirthdate(''); 
             } else {
                 console.error('Error adding player:', data.error);
                 Alert.alert('Error', data.error || 'Something went wrong');
@@ -112,23 +112,16 @@ const AddPlayersScreen: React.FC<AddPlayersScreenProps> = ({ route, navigation }
         }
     };
 
-    // Show Date Picker function
-    const showDatePicker = () => {
-        setDatePickerVisible(true);
-    };
-
     const handleConfirmDate = (date: Date) => {
         const selectedDate = moment(date);
         const currentDate = moment();
 
-        // Check if the selected date is not in the future
         if (selectedDate.isAfter(currentDate, 'day')) {
             Alert.alert('Error', 'Birthdate cannot be in the future!');
             return;
         }
 
         setBirthdate(selectedDate.format('YYYY-MM-DD'));
-        setDatePickerVisible(false); // Close the date picker
     };
 
     const renderPlayer = ({ item }: { item: Player }) => (
@@ -160,7 +153,7 @@ const AddPlayersScreen: React.FC<AddPlayersScreenProps> = ({ route, navigation }
                 extraData={filteredPlayers} // Ensure re-render when filtered
             />
 
-            {/* Add Player Button (with "+" mark) */}
+            {/* Add Player Button */}
             <TouchableOpacity style={styles.addButton} onPress={() => setShowModal(true)}>
                 <Text style={styles.addButtonText}>+</Text>
             </TouchableOpacity>
@@ -222,26 +215,9 @@ const AddPlayersScreen: React.FC<AddPlayersScreenProps> = ({ route, navigation }
                         <Switch
                             value={isWicketKeeper}
                             onValueChange={setIsWicketKeeper}
-                            thumbColor={isWicketKeeper ? 'grey' : 'grey'} // Color of the thumb when toggled on or off
-                            trackColor={{ false: 'grey', true: 'grey' }} // Color of the track when off or on
+                            thumbColor={isWicketKeeper ? 'grey' : 'grey'} 
+                            trackColor={{ false: 'grey', true: 'grey' }} 
                         />
-
-                        {/* Birthdate Picker */}
-                        <Text style={styles.modalLabel}>Birthdate</Text>
-                        <TouchableOpacity style={styles.datePickerButton} onPress={showDatePicker}>
-                            <Text style={styles.datePickerText}>
-                                {birthdate ? birthdate : 'Select Birthdate'}
-                            </Text>
-                        </TouchableOpacity>
-
-                        {/* Date Picker Modal */}
-                        <DateTimePickerModal
-                            isVisible={isDatePickerVisible}
-                            mode="date"
-                            onConfirm={handleConfirmDate}
-                            onCancel={() => setDatePickerVisible(false)}
-                        />
-
                         <Button title="Save Player" onPress={handleAddPlayer} color="grey" />
                         <Button title="Cancel" onPress={() => setShowModal(false)} color="red" />
                     </View>

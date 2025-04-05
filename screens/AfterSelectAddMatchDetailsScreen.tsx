@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, TouchableOpacity, TextInput, Alert, Image } fro
 import { AfterSelectAddMatchDetailsNavigationProp, MatchSeriesScreenNavigationProp, RootStackParamList, SeriesWiseMatchScreenNavigationProp } from '../types';
 import { RouteProp, useNavigation, useRoute, useFocusEffect } from '@react-navigation/native';
 import axios from 'axios';
+import { BASE_URL } from '../App';
 
 interface TeamDetails {
   TeamName: string;
@@ -38,7 +39,7 @@ const AfterSelectAddMatchDetailsScreen = () => {
   const fetchTeamData = async (teamId: string) => {
     try {
       setLoading(true);
-      const response = await fetch(`http://192.168.1.3:5000/get_TeamDetailsById?teamId=${teamId}`);
+      const response = await fetch(`${BASE_URL}/get_TeamDetailsById?teamId=${teamId}`);
       const data = await response.json();
 
       if (data) {
@@ -73,7 +74,7 @@ const AfterSelectAddMatchDetailsScreen = () => {
 
     try {
       setLoading(true);
-      const response = await axios.post('http://192.168.1.3:5000/save_match', matchData);
+      const response = await axios.post(`${BASE_URL}/save_match`, matchData);
       
       if (response.status === 200) {
         Alert.alert('Success', 'Match saved successfully!');
@@ -118,7 +119,6 @@ const AfterSelectAddMatchDetailsScreen = () => {
         </View>
       </View>
 
-      {/* Venue Input */}
       <TextInput
         style={styles.venueInput}
         placeholder="Enter Venue"
@@ -127,7 +127,7 @@ const AfterSelectAddMatchDetailsScreen = () => {
         placeholderTextColor="#b2b2b2"
       />
 
-      {/* Date and Time Input */}
+
       <View style={styles.dateTimeContainer}>
         <TextInput
           style={styles.dateTimeInput}
@@ -145,7 +145,7 @@ const AfterSelectAddMatchDetailsScreen = () => {
         />
       </View>
 
-      {/* Overs Input */}
+
       <TextInput
         style={styles.oversInput}
         placeholder="Enter Overs (whole number)"
@@ -155,7 +155,6 @@ const AfterSelectAddMatchDetailsScreen = () => {
         placeholderTextColor="#b2b2b2"
       />
 
-      {/* Scorer Name Input */}
       <TextInput
         style={styles.scorerInput}
         placeholder="Enter Scorer Name"
@@ -164,7 +163,6 @@ const AfterSelectAddMatchDetailsScreen = () => {
         placeholderTextColor="#b2b2b2"
       />
 
-      {/* Save Match Button */}
       <TouchableOpacity
         style={styles.saveMatchButton}
         onPress={handleSaveMatch}

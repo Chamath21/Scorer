@@ -4,10 +4,19 @@ import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 export type RootStackParamList = {
   MatchSeriesScreen: undefined;
   SeriesWiseMatchScreen: { seriesId: string };
-  SelectTeamScreen: {seriesId: string | null, team: string };
-  AfterSelectAddMatchDetailsScreen: {seriesId: string | null, teamId: string | null};
-  AddPlayersScreen:{teamId: string}
-  SelectTeamsScreen:{matchId: number}
+  SelectTeamScreen: { seriesId: string | null; team: string };
+  AfterSelectAddMatchDetailsScreen: { seriesId: string | null; teamId: string | null };
+  AddPlayersScreen: { teamId: string };
+  MatchTossScreen: { matchId: number };
+  ScoringScreen: { matchId: number };
+  SelectBattersScreen: { BattingTeamId: string; matchId: number };
+  SelectBowlersScreen: { matchId: string; selectedBatterIds: number[] };
+  OutScreen: { matchId: number; battingTeamId: number; striker:  number; nonStriker: number };
+  SelectNewBatterScreen: { matchId: number; battingTeamId: number; };
+  SelectNewBowlersScreen: { matchId: number;};
+  ScoreCardScreen: { matchId: number;};
+  EndInningsScreen: { matchId: number;};
+  MatchSummaryScreen: { matchId: number;};
 };
 
 // Type for navigation in each screen
@@ -36,11 +45,55 @@ export type AddPlayersScreenNavigationProp = NativeStackNavigationProp<
   'AddPlayersScreen'
 >;
 
-export type SelectTeamsScreenNavigationProp = NativeStackNavigationProp<
+export type MatchTossScreenNavigationProp = NativeStackNavigationProp<
   RootStackParamList,
-  'SelectTeamsScreen'
+  'MatchTossScreen'
 >;
 
-// Define a type for navigation that can be used for both screens (AddMatchScreen and SelectTeamScreen)
+export type ScoringScreenNavigationProp = NativeStackNavigationProp<
+  RootStackParamList,
+  'ScoringScreen'
+>;
+
+export type SelectBattersScreenNavigationProp = NativeStackNavigationProp<
+  RootStackParamList,
+  'SelectBattersScreen'
+>;
+
+export type SelectBowlersScreenNavigationProp = NativeStackNavigationProp<
+  RootStackParamList,
+  'SelectBowlersScreen'
+>;
+
+export type OutScreenNavigationProp = NativeStackNavigationProp<
+  RootStackParamList,
+  'OutScreen'
+>; 
+
+export type SelectNewBatterScreenNavigationProp = NativeStackNavigationProp<
+  RootStackParamList,
+  'SelectNewBatterScreen'
+>;
+
+export type SelectNewBowlersScreenRouteProp = NativeStackNavigationProp<
+  RootStackParamList,
+  'SelectNewBowlersScreen'
+>;
+
+export type ScoreCardScreenRouteProp = NativeStackNavigationProp<
+  RootStackParamList,
+  'ScoreCardScreen'
+>;
+
+export type EndInningsScreenRouteProp = NativeStackNavigationProp<
+  RootStackParamList,
+  'EndInningsScreen'
+>;
+
+export type MatchSummaryScreenRouteProp = NativeStackNavigationProp<
+  RootStackParamList,
+  'MatchSummaryScreen'
+>;
+
 export type AddOrSelectTeamScreenNavigationProp =
   | SelectTeamScreenNavigationProp;

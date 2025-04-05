@@ -13,13 +13,14 @@ import axios from 'axios';
 import { Dimensions } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { MatchSeriesScreenNavigationProp } from '../types';
+import { BASE_URL } from '../App';
 
 const screenWidth = Dimensions.get('window').width;
 
 const MatchSeriesScreen = () => {
   const [seriesData, setSeriesData] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const navigation = useNavigation<MatchSeriesScreenNavigationProp>(); // Navigation Hook
+  const navigation = useNavigation<MatchSeriesScreenNavigationProp>(); 
 
   useEffect(() => {
     fetchSeriesData();
@@ -27,7 +28,7 @@ const MatchSeriesScreen = () => {
 
   const fetchSeriesData = async () => {
     try {
-      const response = await axios.get('http://192.168.1.3:5000/get_seriesmasterData');
+      const response = await axios.get(`${BASE_URL}/get_seriesmasterData`);
       setSeriesData(response.data);
     } catch (error) {
       console.error('Error fetching series data:', error);
@@ -37,7 +38,6 @@ const MatchSeriesScreen = () => {
     }
   };
 
-  // Handle Series Click and Navigate with SeriesId
   const handleSeriesClick = (seriesId: string) => {
     navigation.navigate('SeriesWiseMatchScreen', { seriesId });
   };
@@ -51,7 +51,7 @@ const MatchSeriesScreen = () => {
   }
 
   return (
-    <View style={styles.container}>  {/* Changed ImageBackground to View with background color */}
+    <View style={styles.container}>
       <FlatList
         data={seriesData}
         keyExtractor={(item) => item.SeriesId.toString()}
@@ -74,7 +74,7 @@ const styles = StyleSheet.create({
   container: { 
     flex: 1, 
     padding: 10, 
-    backgroundColor: 'rgba(30, 30, 30, 0.8)'  // Background color set here
+    backgroundColor: 'rgba(30, 30, 30, 0.8)'
   },
   card: {
     backgroundColor: 'rgba(30, 30, 30, 0.8)',
