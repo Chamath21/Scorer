@@ -16,6 +16,7 @@ type BattingDetail = {
   Fours: number;
   Sixes: number;
   StrikeRate: number;
+  DismissalType: string;
 };
 
 type BowlingDetail = {
@@ -62,10 +63,15 @@ const ScoreCardScreen = () => {
 
   // Render Batting Details with correct type
   const renderBattingDetails = ({ item, index }: { item: BattingDetail; index: number }) => {
-    const rowStyle = index % 2 === 0 ? styles.rowEven : styles.rowOdd;
     return (
-      <View style={[styles.row, rowStyle]}>
-        <Text style={styles.cell}>{item.BatsmanName}</Text>
+      <View style={[styles.row, index % 2 === 0 ? styles.rowEven : styles.rowOdd]}>
+        {/* Batsman Name */}
+        <Text style={[styles.cell, styles.batsmanName]}>{item.BatsmanName}</Text>
+
+        {/* Dismissal Type Column */}
+        <Text style={styles.cell}>{item.DismissalType}</Text>
+
+        {/* Batting stats */}
         <Text style={styles.cell}>{item.Runs}</Text>
         <Text style={styles.cell}>{item.Balls}</Text>
         <Text style={styles.cell}>{item.Fours}</Text>
@@ -96,19 +102,20 @@ const ScoreCardScreen = () => {
 
   return (
     <ScrollView style={styles.container}>
-      <Text style={styles.title}>Score Card</Text>
+      <Text style={styles.title}>Match Centre</Text>
       <Text style={styles.toss}>{teamASummaryDetails.Toss}</Text>
 
       {/* Conditionally Render Team A Batting Details */}
       <Text style={styles.teamName}>{teamABatsmanDetails[0].TeamAName}</Text>
       <View style={styles.tableContainer}>
         <View style={styles.tableHeader}>
-          <Text style={[styles.tableHeaderCell, styles.headerText]}>Batsman Name</Text>
-          <Text style={[styles.tableHeaderCell, styles.headerText]}>Runs</Text>
-          <Text style={[styles.tableHeaderCell, styles.headerText]}>Balls</Text>
-          <Text style={[styles.tableHeaderCell, styles.headerText]}>Fours</Text>
-          <Text style={[styles.tableHeaderCell, styles.headerText]}>Sixes</Text>
-          <Text style={[styles.tableHeaderCell, styles.headerText]}>Strike Rate</Text>
+          <Text style={styles.tableHeaderCell}>Batsman</Text>
+          <Text style={styles.tableHeaderCell}>H/O</Text>
+          <Text style={styles.tableHeaderCell}>R</Text>
+          <Text style={styles.tableHeaderCell}>B</Text>
+          <Text style={styles.tableHeaderCell}>4s</Text>
+          <Text style={styles.tableHeaderCell}>6s</Text>
+          <Text style={styles.tableHeaderCell}>SR</Text>
         </View>
         <FlatList
           data={teamABatsmanDetails}
@@ -121,12 +128,12 @@ const ScoreCardScreen = () => {
       <Text style={styles.teamName}>{teamABowlerDetails[0].TeamBName}</Text>
       <View style={styles.tableContainer}>
         <View style={styles.tableHeader}>
-          <Text style={[styles.tableHeaderCell, styles.headerText]}>Bowler Name</Text>
-          <Text style={[styles.tableHeaderCell, styles.headerText]}>Overs</Text>
-          <Text style={[styles.tableHeaderCell, styles.headerText]}>Maidens</Text>
-          <Text style={[styles.tableHeaderCell, styles.headerText]}>Runs</Text>
-          <Text style={[styles.tableHeaderCell, styles.headerText]}>Wickets</Text>
-          <Text style={[styles.tableHeaderCell, styles.headerText]}>Average</Text>
+          <Text style={styles.tableHeaderCell}>Bowler</Text>
+          <Text style={styles.tableHeaderCell}>O</Text>
+          <Text style={styles.tableHeaderCell}>M</Text>
+          <Text style={styles.tableHeaderCell}>R</Text>
+          <Text style={styles.tableHeaderCell}>W</Text>
+          <Text style={styles.tableHeaderCell}>Ave</Text>
         </View>
         <FlatList
           data={teamABowlerDetails}
@@ -164,7 +171,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#fff',
-    paddingTop: 20,
+    paddingTop: 10,
     paddingHorizontal: 15,
   },
   title: {
@@ -172,11 +179,10 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     textAlign: 'center',
   },
-  matchInfo: {
-    fontSize: 18,
-    color: 'gray',
+  toss: {
+    fontSize: 13,
+    marginTop: 5,
     textAlign: 'center',
-    marginTop: 10,
   },
   teamName: {
     fontSize: 15,
@@ -185,7 +191,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   tableContainer: {
-    marginTop: 20,
+    marginTop: 10,
     borderWidth: 2,
     borderColor: '#ccc',
     backgroundColor: '#f9f9f9',
@@ -206,9 +212,7 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     textAlign: 'center',
     paddingVertical: 8,
-  },
-  headerText: {
-    color: '#333',
+    minWidth: 60, // Ensure cells don't shrink too much
   },
   row: {
     flexDirection: 'row',
@@ -227,6 +231,13 @@ const styles = StyleSheet.create({
     fontSize: 12,
     textAlign: 'center',
     paddingVertical: 8,
+    minWidth: 60, // Ensure consistent width across cells
+  },
+  batsmanName: {
+    textAlign: 'left', // Align batsman name to the left
+  },
+  dismissalType: {
+    textAlign: 'center', // Align dismissal type to center
   },
   matchStatsContainer: {
     paddingHorizontal: 10,
@@ -247,11 +258,6 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     marginRight: 10,
   },
-  toss:{
-    fontSize: 13,
-    marginTop: 5,
-    textAlign: 'center',
-  }
 });
 
 export default ScoreCardScreen;

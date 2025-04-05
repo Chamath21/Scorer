@@ -110,6 +110,14 @@ const SeriesWiseMatchScreen = () => {
     setIsModalVisible(true);  // Show modal when match is clicked
   };
 
+  const handleResumeScoring = () => {
+    if (selectedMatch) {
+      // Navigate to ScoringScreen
+      navigation.navigate('ScoringScreen', { matchId: selectedMatch.MatchId });
+      setIsModalVisible(false);  // Close modal after navigating
+    }
+  };
+
   const handleStartMatch = () => {
     if (selectedMatch) {
       // Navigate to the SelectTeamsScreen and pass the MatchId parameter
@@ -202,12 +210,21 @@ const SeriesWiseMatchScreen = () => {
           <View style={styles.modalBackground}>
             <View style={styles.modalContent}>
               <Text style={styles.modalTitle}>Choose an Option</Text>
-              <TouchableOpacity onPress={handleStartMatch} style={styles.modalButton}>
-                <Text style={styles.modalButtonText}>Start Match</Text>
-              </TouchableOpacity>
-              <TouchableOpacity onPress={handleDeleteMatch} style={styles.modalButton}>
-                <Text style={styles.modalButtonText}>Delete Match</Text>
-              </TouchableOpacity>
+              {/* Conditionally render options */}
+              {selectedMatch?.MatchStatus === 2 ? (
+                <TouchableOpacity onPress={handleResumeScoring} style={styles.modalButton}>
+                  <Text style={styles.modalButtonText}>Resume Scoring</Text>
+                </TouchableOpacity>
+              ) : (
+                <>
+                  <TouchableOpacity onPress={handleStartMatch} style={styles.modalButton}>
+                    <Text style={styles.modalButtonText}>Start Match</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity onPress={handleDeleteMatch} style={styles.modalButton}>
+                    <Text style={styles.modalButtonText}>Delete Match</Text>
+                  </TouchableOpacity>
+                </>
+              )}
             </View>
           </View>
         </TouchableWithoutFeedback>

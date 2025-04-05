@@ -21,6 +21,7 @@ const SelectBowlersScreen = () => {
   const [bowlers, setBowlers] = useState<Bowler[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [selectedBowler, setSelectedBowler] = useState<Bowler | null>(null);
+  const [MatchDecidedOvers, setMatchDecidedOvers] = useState<number | 0>(0);
 
   useEffect(() => {
     const fetchBowlers = async () => {
@@ -66,6 +67,18 @@ const SelectBowlersScreen = () => {
     } catch (error) {
       console.error('Error starting match:', error);
       Alert.alert('Error', 'An error occurred while starting the match.');
+
+      try {
+        const response = await axios.get(`${BASE_URL}/get_IsInningsCompleted`, {
+          params: { matchId }
+        });
+        setMatchDecidedOvers(response.data.MatchDecidedOvers || 1000);
+        console.log('MatchDecidedOvers', MatchDecidedOvers)
+      } catch (error) {
+        console.error('Error fetching over completion status:', error);
+        Alert.alert('Error', 'An error occurred while fetching over completion status.');
+      }
+
     }
   };
 

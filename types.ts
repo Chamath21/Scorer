@@ -15,6 +15,8 @@ export type RootStackParamList = {
   SelectNewBatterScreen: { matchId: number; battingTeamId: number; };
   SelectNewBowlersScreen: { matchId: number;};
   ScoreCardScreen: { matchId: number;};
+  EndInningsScreen: { matchId: number;};
+  MatchSummaryScreen: { matchId: number;};
 };
 
 // Type for navigation in each screen
@@ -81,6 +83,16 @@ export type SelectNewBowlersScreenRouteProp = NativeStackNavigationProp<
 export type ScoreCardScreenRouteProp = NativeStackNavigationProp<
   RootStackParamList,
   'ScoreCardScreen'
+>;
+
+export type EndInningsScreenRouteProp = NativeStackNavigationProp<
+  RootStackParamList,
+  'EndInningsScreen'
+>;
+
+export type MatchSummaryScreenRouteProp = NativeStackNavigationProp<
+  RootStackParamList,
+  'MatchSummaryScreen'
 >;
 
 export type AddOrSelectTeamScreenNavigationProp =

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, ScrollView, Alert } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, ScrollView, Alert, Modal } from 'react-native';
 import { useRoute, RouteProp, useNavigation } from '@react-navigation/native';
-import { OutScreenNavigationProp, RootStackParamList, SelectNewBowlersScreenRouteProp } from '../types';
+import { MatchSummaryScreenRouteProp, OutScreenNavigationProp, RootStackParamList, SelectNewBowlersScreenRouteProp } from '../types';
 import axios from 'axios';
 import { BASE_URL } from '../App';
 
@@ -46,8 +46,10 @@ const MatchScoringScreen = () => {
   const [isBowlerExtra, setIsBowlerExtra] = useState<boolean>(false);
   const [isOverCompleted, setIsOverCompleted] = useState<boolean | null>(null);
   const [extraType, setExtraType] = useState<number | 0>(0);
-
-
+  const [isModalVisible, setIsModalVisible] = useState(false);
+  const [isEndInningsModalVisible, setisEndInningsModalVisible] = useState(false);
+  const [IsInningsCompleted, setIsInningsCompleted] = useState<boolean | null>(null);
+  const [MatchDecidedOvers, setMatchDecidedOvers] = useState<number | 0>(0);
 
   // State for batsmen and to track the striker
   const [batsmen, setBatsmen] = useState<Batsman[]>([]);
@@ -61,6 +63,9 @@ const MatchScoringScreen = () => {
 
   const [bowlerOvers, setBowlerOvers] = useState<number>(0.0);
   const [bowlerballs, setBowlerballs] = useState<number>(0.0);
+
+  const navigation2 = useNavigation<MatchSummaryScreenRouteProp>();
+  const [isEndMatchModalVisible, setisEndMatchModalVisible] = useState<boolean>(false);
 
   useEffect(() => {
     const fetchMatchData = async () => {
@@ -115,10 +120,9 @@ const MatchScoringScreen = () => {
           Alert.alert('Error', 'An error occurred while fetching over completion status.');
         }
       };
-  
+
       fetchOverCompletionStatus();
-      console.log(isOverCompleted)
-      if(isOverCompleted){
+      if (isOverCompleted) {
         navigation.navigate('SelectNewBowlersScreen', { matchId: matchId });
       }
     }
@@ -132,15 +136,15 @@ const MatchScoringScreen = () => {
     const updatedBatsmen = [...batsmen];
     const striker = updatedBatsmen[strikerIndex];
     const currentBowler = bowlers[0];
-  
+
     let isBoundary = false;
-    
+
     // Update the batsman's stats only if it's not an extra
     if (!isExtra) {
       striker.runs += runs;
       striker.balls += 1;
       currentBowler.runs += runs;
-  
+
       if (runs === 4) {
         striker.fours += 1;
         isBoundary = true;
@@ -155,19 +159,19 @@ const MatchScoringScreen = () => {
     }
 
     if (isBowlerExtra) {
-      currentBowler.runs += runs;  
-    } 
-    if (isBowlerExtra && extraType == 2){
+      currentBowler.runs += runs;
+    }
+    if (isBowlerExtra && extraType == 2) {
       striker.balls += 1;
     }
-      else {
+    else {
       // For extras, just update the runs (without increasing ball or striker stats)
       setExtras((prevExtras) => prevExtras + runs);
     }
-  
+
     setBatsmen(updatedBatsmen);
     setScore((prevScore) => prevScore + runs);
-  
+
     if (!isExtra) {
       setBallsInOver((prevBalls) => {
         const newBalls = Number(prevBalls) + 1;
@@ -179,7 +183,7 @@ const MatchScoringScreen = () => {
         }
         return newBalls;
       });
-  
+
       setBowlerballs((prevBalls) => {
         const newBalls = Number(prevBalls) + 1;
         if (newBalls === 6) {
@@ -189,9 +193,9 @@ const MatchScoringScreen = () => {
         return newBalls;
       });
     }
-  
+
     if (!isExtra && runs % 2 !== 0) rotateBatsmen();
-  
+
     try {
       await axios.post(`${BASE_URL}/AddRuns`, {
         batsmanId: striker.batsmanId,
@@ -215,18 +219,55 @@ const MatchScoringScreen = () => {
         extraType: extraType
       });
       console.log('Run recorded successfully');
+      try {
+        const response = await axios.get(`${BASE_URL}/get_IsInningsCompleted`, {
+          params: { matchId }
+        });
+        setMatchDecidedOvers(response.data.MatchDecidedOvers || 0);
+      } catch (error) {
+        console.error('Error fetching over completion status:', error);
+        Alert.alert('Error', 'An error occurred while fetching over completion status.');
+      }
     } catch (error) {
       console.error('Error recording run:', error);
       Alert.alert('Error', 'An error occurred while recording the run.');
     }
+
+    fetchMatchEndData();
+
   };
-  
+
+  const fetchMatchEndData = async () => {
+    try {
+      await new Promise(resolve => setTimeout(resolve, 1000));
+
+      const response = await axios.get(`${BASE_URL}/get_MatchEndData`, {
+        params: { matchId },
+      });
+
+      console.log('API Response:', response.data);  // Add this line to debug API response
+
+      if (response.data.IsMatchOver == true) {
+        setisEndMatchModalVisible(true);
+      }
+
+
+    } catch (error) {
+      console.error('Error fetching over completion status:', error);
+      Alert.alert('Error', 'An error occurred while fetching over completion status.');
+    }
+  };
+
+  const toggleModalIsInningsEnded = () => {
+    setisEndInningsModalVisible(prevState => !prevState);
+  };
+
   const extraButtonHandler = (label: string) => {
     setIsBowlerExtra(true);
     setIsExtra(true);
-    
+
     let currentExtraType = 0;
-  
+
     switch (label) {
       case 'WD':
         currentExtraType = 1; // WD gets the value 1
@@ -249,12 +290,12 @@ const MatchScoringScreen = () => {
         currentExtraType = 0;
         break;
     }
-  
+
     // Now pass the currentExtraType directly to addRuns
     setExtraType(currentExtraType);  // Update the state
     addRuns(1, true); // Add runs for the selected extra
   };
-  
+
 
   const handleWicket = () => {
     if (batsmen.length > 0) {
@@ -298,10 +339,50 @@ const MatchScoringScreen = () => {
     navigation.navigate('ScoreCardScreen', { matchId });
   };
 
+  const toggleModal = () => {
+    setIsModalVisible(prevState => !prevState);
+  };
+
+  const handleOptionSelect = (option: number) => {
+    console.log(option); // Handle each option here
+    setIsModalVisible(false); // Close the modal after selecting an option
+    // You can perform different actions based on the selected option
+    if (option === 1) {
+      // Handle abandon logic
+    } else if (option === 2) {
+      // Handle end innings logic
+    } else if (option === 3) {
+      // Handle declare innings logic
+    } else if (option === 4) {
+      // Handle change target logic
+    }
+  };
+
+  const endInnings = async () => {
+    setisEndInningsModalVisible(false);
+    try {
+      await axios.post(`${BASE_URL}/endInnings`, { matchId });
+      console.log('Innings ended');
+      // navigation.navigate('MatchSummary');
+    } catch (error) {
+      console.error('Error ending innings:', error);
+      Alert.alert('Error', 'An error occurred while ending the innings.');
+    }
+  };
+
+  const endMatch = () => {
+    navigation2.navigate('MatchSummaryScreen', { matchId: Number(matchId) });
+    toggleModalisEndMatchEnded();
+  };
+
+  const toggleModalisEndMatchEnded = () => {
+    setisEndMatchModalVisible(false);
+  };
+
   return (
     <View style={styles.container}>
       <ScrollView contentContainerStyle={styles.scrollContainer}>
-      <TouchableOpacity onPress={handleMatchCentreClick}>
+        <TouchableOpacity onPress={handleMatchCentreClick}>
           <Text style={styles.title}>Match Centre</Text>
         </TouchableOpacity>
         <Text style={styles.teamName}>Team A vs Team B</Text>
@@ -378,23 +459,65 @@ const MatchScoringScreen = () => {
         </View>
 
         {/* Extra buttons */}
-      <View style={styles.extraButtonsContainer}>
-        <TouchableOpacity style={styles.button} onPress={() => extraButtonHandler('WD')}>
-          <Text style={styles.buttonText}>WD</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.button} onPress={() => extraButtonHandler('NB')}>
-          <Text style={styles.buttonText}>NB</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.button} onPress={() => extraButtonHandler('Bye')}>
-          <Text style={styles.buttonText}>Bye</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.button} onPress={() => extraButtonHandler('Leg Bye')}>
-          <Text style={styles.buttonText}>Leg Bye</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.button} onPress={() => extraButtonHandler('Out')}>
-          <Text style={styles.buttonText}>Out</Text>
-        </TouchableOpacity>
-      </View>
+        <View style={styles.extraButtonsContainer}>
+          <TouchableOpacity style={styles.button} onPress={() => extraButtonHandler('WD')}>
+            <Text style={styles.buttonText}>WD</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.button} onPress={() => extraButtonHandler('NB')}>
+            <Text style={styles.buttonText}>NB</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.button} onPress={() => extraButtonHandler('Bye')}>
+            <Text style={styles.buttonText}>Bye</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.button} onPress={() => extraButtonHandler('Leg Bye')}>
+            <Text style={styles.buttonText}>Leg Bye</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.button} onPress={() => extraButtonHandler('Out')}>
+            <Text style={styles.buttonText}>Out</Text>
+          </TouchableOpacity>
+        </View>
+
+        {/* End Innings Modal */}
+        <Modal
+          visible={isEndInningsModalVisible}
+          transparent={true}
+          animationType="slide"
+          onRequestClose={toggleModalIsInningsEnded}>
+          <View style={styles.modalBackground}>
+            <View style={styles.modalContentEndInnings}>
+              <Text style={styles.modalText}>Are you sure you want to end the innings?</Text>
+              <View style={styles.modalButtonContainer}>
+                <TouchableOpacity style={styles.modalButton} onPress={endInnings}>
+                  <Text style={styles.buttonText}>Yes</Text>
+                </TouchableOpacity>
+                <TouchableOpacity style={styles.modalButton} onPress={toggleModalIsInningsEnded}>
+                  <Text style={styles.buttonText}>No</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </View>
+        </Modal>
+
+        <Modal
+          visible={isEndMatchModalVisible}
+          transparent={true}
+          animationType="fade"
+          onRequestClose={toggleModalisEndMatchEnded}
+        >
+          <View style={styles.modalBackground}>
+            <View style={styles.modalContentEndInnings}>
+              <Text style={styles.modalText}>Are you sure you want to end the match?</Text>
+              <View style={styles.modalButtonContainer}>
+                <TouchableOpacity style={styles.modalButton} onPress={endMatch}>
+                  <Text style={styles.buttonText}>Yes</Text>
+                </TouchableOpacity>
+                <TouchableOpacity style={styles.modalButton} onPress={toggleModalisEndMatchEnded}>
+                  <Text style={styles.buttonText}>No</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </View>
+        </Modal>
 
         <View style={styles.extraButtonsContainer}>
           <TouchableOpacity style={styles.button} onPress={() => addRuns(0)}>
@@ -405,9 +528,44 @@ const MatchScoringScreen = () => {
             <Text style={styles.buttonText}>P</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity style={styles.button} onPress={goToSettings}>
+          <TouchableOpacity style={styles.button} onPress={() => {
+            console.log('Set button pressed');
+            toggleModal(); // Toggle modal visibility when "Set.." button is pressed
+          }}>
             <Text style={styles.buttonText}>Set..</Text>
           </TouchableOpacity>
+
+          {/* Modal for Extra Options */}
+          <Modal
+            animationType="slide"
+            transparent={true}
+            visible={isModalVisible}
+            onRequestClose={toggleModal}
+          >
+            <View style={styles.modalOverlay}>
+              <View style={styles.modalContent}>
+                <Text style={styles.modalTitle}>Settings</Text>
+
+                <TouchableOpacity style={styles.settingsButton} onPress={() => handleOptionSelect(1)}>
+                  <Text style={styles.buttonText}>Declare</Text>
+                </TouchableOpacity>
+                <TouchableOpacity style={styles.settingsButton} onPress={() => handleOptionSelect(2)}>
+                  <Text style={styles.buttonText}>End Innings</Text>
+                </TouchableOpacity>
+                <TouchableOpacity style={styles.settingsButton} onPress={() => handleOptionSelect(3)}>
+                  <Text style={styles.buttonText}>Abandoned</Text>
+                </TouchableOpacity>
+                <TouchableOpacity style={styles.settingsButton} onPress={() => handleOptionSelect(4)}>
+                  <Text style={styles.buttonText}>Change Target</Text>
+                </TouchableOpacity>
+
+                {/* Close the modal */}
+                <TouchableOpacity style={styles.settingsButton} onPress={toggleModal}>
+                  <Text style={styles.buttonText}>Close</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </Modal>
 
           <TouchableOpacity style={styles.button} onPress={undoAction}>
             <Text style={styles.buttonText}>Un..</Text>
@@ -501,6 +659,15 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
+  settingsButton: {
+    padding: 10,
+    margin: 5,
+    backgroundColor: '#f1f1f1',
+    borderRadius: 5,
+    width: 200,  // Set a consistent width for each button
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   buttonText: {
     fontSize: 16,
     fontWeight: 'bold',
@@ -523,6 +690,51 @@ const styles = StyleSheet.create({
   extraButtonsContainer: {
     flexDirection: 'row',
     justifyContent: 'space-evenly',  // Evenly distribute extra buttons
+  },
+  modalOverlay: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+  },
+  modalContent: {
+    backgroundColor: 'white',
+    padding: 20,
+    borderRadius: 10,
+    alignItems: 'center',
+    width: 300,
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginBottom: 20,
+  },
+  modalBackground: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+  },
+  modalContentEndInnings: {
+    backgroundColor: '#fff',
+    padding: 20,
+    borderRadius: 10,
+    width: '80%',
+    alignItems: 'center',
+  },
+  modalText: {
+    fontSize: 18,
+    marginBottom: 20,
+  },
+  modalButtonContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+  modalButton: {
+    backgroundColor: '#FF6347',
+    padding: 10,
+    borderRadius: 5,
+    marginHorizontal: 10,
   },
 });
 

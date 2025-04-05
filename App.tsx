@@ -15,10 +15,12 @@ import OutScreen from './screens/OutScreen';
 import SelectNewBatterScreen from './screens/SelectNewBatterScreen';
 import SelectNewBowlersScreen from './screens/SelectNewBowlerScreen';
 import ScoreCardScreen from './screens/ScoreCardScreen';
+import EndInningsScreen from './screens/EndInningsScreen';
+import MatchSummaryScreen from './screens/MatchSummaryScreen';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
-export const BASE_URL = 'http://192.168.1.7:5000';  
+export const BASE_URL = 'http://192.168.1.2:5000';  
 
 
 const App = () => {
@@ -38,6 +40,8 @@ const App = () => {
         <Stack.Screen name="SelectNewBatterScreen" component={SelectNewBatterScreen} />
         <Stack.Screen name="SelectNewBowlersScreen" component={SelectNewBowlersScreen} />
         <Stack.Screen name="ScoreCardScreen" component={ScoreCardScreen} />
+        <Stack.Screen name="EndInningsScreen" component={EndInningsScreen} />
+        <Stack.Screen name="MatchSummaryScreen" component={MatchSummaryScreen} />
       </Stack.Navigator>
     </NavigationContainer>
   );
