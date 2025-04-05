@@ -8,10 +8,11 @@ import {
   ImageBackground,
   Alert,
 } from 'react-native';
-import axios from 'axios'; // Import axios for making the API call
+import axios from 'axios'; 
+import { BASE_URL } from '../App';
 
 interface LoginScreenProps {
-  onLogin: () => void; // Function to handle successful login
+  onLogin: () => void; 
 }
 
 const LoginScreen: React.FC<LoginScreenProps> = ({ onLogin }) => {
@@ -21,8 +22,8 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ onLogin }) => {
   const handleLogin = async () => {
     try {
       const response = await axios.post(
-        'http://192.168.1.9:5000/login',
-        { email, password }, // No need to use JSON.stringify
+        `${BASE_URL}/login`,
+        { email, password }, 
         {
           headers: {
             'Content-Type': 'application/json',
@@ -30,9 +31,8 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ onLogin }) => {
         }
       );
   
-      // Check if login was successful
       if (response.status === 200) {
-        onLogin(); // Navigate to home screen
+        onLogin();
       } else {
         Alert.alert('Login Failed', response.data.error || 'Invalid credentials.');
       }
@@ -44,7 +44,7 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ onLogin }) => {
 
   return (
     <ImageBackground
-      source={require('../assets/bg.jpg')} // Make sure the image exists in assets
+      source={require('../assets/bg.jpg')} 
       style={styles.background}
       resizeMode="cover"
     >
@@ -92,7 +92,7 @@ const styles = StyleSheet.create({
   },
   overlay: {
     width: '90%',
-    backgroundColor: 'rgba(0, 0, 0, 0.7)', // Dark transparent overlay
+    backgroundColor: 'rgba(0, 0, 0, 0.7)', 
     padding: 20,
     borderRadius: 10,
     alignItems: 'center',
@@ -100,13 +100,13 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: '#FFD700', // Cricket Yellow
+    color: '#FFD700', 
     marginBottom: 20,
   },
   input: {
     width: '100%',
     height: 50,
-    backgroundColor: 'rgba(255, 255, 255, 0.2)', // Light transparent input
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
     borderRadius: 8,
     paddingHorizontal: 15,
     fontSize: 16,
@@ -114,7 +114,7 @@ const styles = StyleSheet.create({
     marginBottom: 15,
   },
   button: {
-    backgroundColor: '#FFD700', // Cricket Yellow
+    backgroundColor: '#FFD700',
     paddingVertical: 12,
     width: '100%',
     borderRadius: 8,
@@ -130,7 +130,7 @@ const styles = StyleSheet.create({
     marginTop: 10,
   },
   forgotText: {
-    color: '#FFD700', // Cricket Yellow
+    color: '#FFD700',
     fontSize: 14,
   },
 });

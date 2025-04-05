@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TextInput, FlatList, Image, StyleSheet, TouchableOpacity } from 'react-native';
-import { AddOrSelectTeamScreenNavigationProp, SelectTeamScreenNavigationProp } from '../types';
+import { View, Text, TextInput, FlatList, Image, StyleSheet, TouchableOpacity, Modal, Button, Alert } from 'react-native';
+import { AddOrSelectTeamScreenNavigationProp } from '../types';
+import { BASE_URL } from '../App';
 
-// Define a TypeScript type for a team
 type Team = {
   TeamId: string;
   TeamName: string;
@@ -11,22 +11,29 @@ type Team = {
 };
 
 type SelectTeamScreenProps = {
-    navigation: AddOrSelectTeamScreenNavigationProp; // Use the union type here
-  };
+  navigation: AddOrSelectTeamScreenNavigationProp;
+  route: any;
+};
 
-  const SelectTeamScreen: React.FC<SelectTeamScreenProps> = ({ navigation }) => {
-    const [searchQuery, setSearchQuery] = useState('');
-    const [teams, setTeams] = useState<Team[]>([]); // Assuming Team is defined elsewhere
-    const [filteredTeams, setFilteredTeams] = useState<Team[]>([]);
+const SelectTeamScreen: React.FC<SelectTeamScreenProps> = ({ navigation, route }) => {
+  const [searchQuery, setSearchQuery] = useState('');
+  const [teams, setTeams] = useState<Team[]>([]);
+  const [filteredTeams, setFilteredTeams] = useState<Team[]>([]);
+  const [showModal, setShowModal] = useState(false);
+  const [newTeamName, setNewTeamName] = useState('');
+  const [newTeamLocation, setNewTeamLocation] = useState('');
+  const [newTeamPictureUrl, setNewTeamPictureUrl] = useState('');
+
+  const { seriesId } = route.params;
 
   useEffect(() => {
     const fetchTeamDetails = async () => {
       try {
-        const response = await fetch('http://192.168.1.9:5000/get_TeamDetails'); // Replace with your actual API URL
+        const response = await fetch(`${BASE_URL}/get_TeamDetails`);
         const data = await response.json();
         if (response.ok) {
           setTeams(data);
-          setFilteredTeams(data); // Initially, display all teams
+          setFilteredTeams(data);
         } else {
           console.error('Error fetching team details:', data.error);
         }
@@ -38,7 +45,6 @@ type SelectTeamScreenProps = {
     fetchTeamDetails();
   }, []);
 
-  // Handle search input change
   const handleSearch = (query: string) => {
     setSearchQuery(query);
     const filtered = teams.filter(team =>
@@ -47,22 +53,74 @@ type SelectTeamScreenProps = {
     setFilteredTeams(filtered);
   };
 
-  // Handle team selection and navigate back to AddMatchScreen
   const handleTeamSelect = (team: Team) => {
-    // Navigate to the AfterSelectAddMatchDetailsScreen and pass the team ID as a parameter
-    navigation.navigate('AfterSelectAddMatchDetailsScreen', { teamId: team.TeamId });
+    navigation.navigate('AfterSelectAddMatchDetailsScreen', { seriesId: seriesId, teamId: team.TeamId });
   };
-  
+
+  const handleAddPlayers = (teamId: string) => {
+    navigation.navigate('AddPlayersScreen', { teamId });  
+  };
 
   const renderTeam = ({ item }: { item: Team }) => (
-    <TouchableOpacity style={styles.teamRow} onPress={() => handleTeamSelect(item)}>
-      <Image source={{ uri: item.TeamPictureUrl }} style={styles.teamLogo} />
-      <View style={styles.teamInfo}>
-        <Text style={styles.teamName}>{item.TeamName}</Text>
-        <Text style={styles.teamLocation}>{item.TeamLocation}</Text>
-      </View>
-    </TouchableOpacity>
+    <View style={styles.teamRow}>
+      <TouchableOpacity style={styles.teamItem} onPress={() => handleTeamSelect(item)}>
+        <Image source={{ uri: item.TeamPictureUrl }} style={styles.teamLogo} />
+        <View style={styles.teamInfo}>
+          <Text style={styles.teamName}>{item.TeamName}</Text>
+          <Text style={styles.teamLocation}>{item.TeamLocation}</Text>
+        </View>
+      </TouchableOpacity>
+
+      {/* "+" Icon for Adding Players */}
+      <TouchableOpacity
+        style={styles.addPlayerButton}
+        onPress={() => handleAddPlayers(item.TeamId)}
+      >
+        <Text style={styles.addPlayerButtonText}>+</Text>
+      </TouchableOpacity>
+    </View>
   );
+
+  const handleAddTeam = async () => {
+    if (!newTeamName || !newTeamLocation || !newTeamPictureUrl) {
+      Alert.alert('Error', 'Please fill in all fields!');
+      return;
+    }
+
+    const newTeam: Team = {
+      TeamId: Math.random().toString(36).substr(2, 9),
+      TeamName: newTeamName,
+      TeamLocation: newTeamLocation,
+      TeamPictureUrl: newTeamPictureUrl,
+    };
+
+    try {
+      const response = await fetch(`${BASE_URL}/add_teams`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(newTeam),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        setTeams([...teams, newTeam]);
+        setFilteredTeams([...teams, newTeam]);
+        setShowModal(false);
+        setNewTeamName('');
+        setNewTeamLocation('');
+        setNewTeamPictureUrl('');
+      } else {
+        console.error('Error adding team:', data.error);
+        Alert.alert('Error', data.error || 'Something went wrong');
+      }
+    } catch (error) {
+      console.error('Error adding team:', error);
+      Alert.alert('Error', 'An error occurred while adding the team.');
+    }
+  };
 
   return (
     <View style={styles.container}>
@@ -81,6 +139,47 @@ type SelectTeamScreenProps = {
         keyExtractor={item => item.TeamId}
         contentContainerStyle={styles.list}
       />
+
+      {/* Add Team Button (Now with "+" mark) */}
+      <TouchableOpacity style={styles.addButton} onPress={() => setShowModal(true)}>
+        <Text style={styles.addButtonText}>+</Text>
+      </TouchableOpacity>
+
+      {/* Modal for Adding a Team */}
+      <Modal
+        visible={showModal}
+        animationType="slide"
+        transparent={true}
+        onRequestClose={() => setShowModal(false)}
+      >
+        <View style={styles.modalContainer}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>Add New Team</Text>
+            
+            <TextInput
+              style={styles.input}
+              placeholder="Team Name"
+              value={newTeamName}
+              onChangeText={setNewTeamName}
+            />
+            <TextInput
+              style={styles.input}
+              placeholder="Team Location"
+              value={newTeamLocation}
+              onChangeText={setNewTeamLocation}
+            />
+            <TextInput
+              style={styles.input}
+              placeholder="Team Picture URL"
+              value={newTeamPictureUrl}
+              onChangeText={setNewTeamPictureUrl}
+            />
+
+            <Button title="Save Team" onPress={handleAddTeam} />
+            <Button title="Cancel" onPress={() => setShowModal(false)} color="red" />
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 };
@@ -89,15 +188,16 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     padding: 20,
-    backgroundColor: '#fff',
+    backgroundColor: 'rgba(30, 30, 30, 0.8)',
   },
   searchBar: {
     height: 40,
-    borderColor: '#ccc',
+    borderColor: '#ffffff',
     borderWidth: 1,
     borderRadius: 5,
     marginBottom: 20,
     paddingLeft: 10,
+    color: '#ffffff',
   },
   list: {
     paddingBottom: 20,
@@ -107,13 +207,18 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: 10,
     borderBottomWidth: 1,
-    borderBottomColor: '#ccc',
+    borderBottomColor: '#ffffff',
+    justifyContent: 'space-between',
+  },
+  teamItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
   },
   teamLogo: {
     width: 50,
     height: 50,
     marginRight: 10,
-    borderRadius: 25, // Adjust if logos are circular
+    borderRadius: 25,
   },
   teamInfo: {
     flexDirection: 'column',
@@ -121,10 +226,66 @@ const styles = StyleSheet.create({
   teamName: {
     fontSize: 18,
     fontWeight: 'bold',
+    color: '#ffffff',
   },
   teamLocation: {
     fontSize: 14,
-    color: '#555',
+    color: '#ffffff',
+  },
+  addButton: {
+    backgroundColor: '#ffffff',
+    padding: 10,
+    borderRadius: 50,
+    width: 60,
+    height: 60,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginTop: 20,
+  },
+  addButtonText: {
+    fontSize: 30,
+    fontWeight: 'bold',
+    color: 'rgba(30, 30, 30, 0.8)',
+  },
+  addPlayerButton: {
+    backgroundColor: '#ff9800',
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  addPlayerButtonText: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#ffffff',
+  },
+  modalContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+  },
+  modalContent: {
+    width: '80%',
+    backgroundColor: '#fff',
+    padding: 20,
+    borderRadius: 10,
+  },
+  modalTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    marginBottom: 10,
+    color: 'rgba(0, 0, 0, 0.5)',
+  },
+  input: {
+    height: 40,
+    borderColor: 'rgba(0, 0, 0, 0.5)',
+    borderWidth: 1,
+    borderRadius: 5,
+    marginBottom: 10,
+    paddingLeft: 10,
+    color: 'rgba(0, 0, 0, 0.5)',
   },
 });
 
