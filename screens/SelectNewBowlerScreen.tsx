@@ -169,6 +169,24 @@ const SelectNewBowlersScreen = () => {
       Alert.alert('Error', 'An error occurred while ending the innings.');
     }
   };
+
+  const handleMatchEnd = async () => {
+    try {
+      // Sending matchId in the body of the POST request
+      const response = await axios.post(`${BASE_URL}/save_MatchEnd`, {
+        matchId: matchId, // Sending matchId as part of the body
+      });
+  
+      if (response.status === 200) {
+        navigation2.navigate('MatchSummaryScreen', { matchId: Number(matchId) });
+      } else {
+        Alert.alert('Error', 'Failed to end the innings.');
+      }
+    } catch (error) {
+      console.error('Error ending innings:', error);
+      Alert.alert('Error', 'An error occurred while ending the innings.');
+    }
+  };
   
 
   const renderBowler = ({ item }: { item: Bowler }) => {
@@ -200,7 +218,7 @@ const SelectNewBowlersScreen = () => {
   };
 
   const endMatch = () => {
-    //handleInningsEnd();
+    handleMatchEnd();
     toggleModalisEndMatchEnded();
   };
 

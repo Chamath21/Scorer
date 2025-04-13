@@ -271,17 +271,21 @@ const MatchScoringScreen = () => {
     switch (label) {
       case 'WD':
         currentExtraType = 1; // WD gets the value 1
+        addRuns(1, true); 
         break;
       case 'NB':
         currentExtraType = 2; // NB gets the value 2
+        addRuns(1, true); 
         break;
       case 'Bye':
         currentExtraType = 3; // Bye gets the value 3
         setIsBowlerExtra(false);
+        addRuns(1, true); 
         break;
       case 'LB':
         currentExtraType = 4; // LB gets the value 4
         setIsBowlerExtra(false);
+        addRuns(1, true); 
         break;
       case 'Out':
         handleWicket();
@@ -293,7 +297,7 @@ const MatchScoringScreen = () => {
 
     // Now pass the currentExtraType directly to addRuns
     setExtraType(currentExtraType);  // Update the state
-    addRuns(1, true); // Add runs for the selected extra
+    // Add runs for the selected extra
   };
 
 
@@ -371,12 +375,30 @@ const MatchScoringScreen = () => {
   };
 
   const endMatch = () => {
-    navigation2.navigate('MatchSummaryScreen', { matchId: Number(matchId) });
+    handleMatchEnd();
     toggleModalisEndMatchEnded();
   };
 
   const toggleModalisEndMatchEnded = () => {
     setisEndMatchModalVisible(false);
+  };
+
+  const handleMatchEnd = async () => {
+    try {
+      // Sending matchId in the body of the POST request
+      const response = await axios.post(`${BASE_URL}/save_MatchEnd`, {
+        matchId: matchId, // Sending matchId as part of the body
+      });
+  
+      if (response.status === 200) {
+        navigation2.navigate('MatchSummaryScreen', { matchId: Number(matchId) });
+      } else {
+        Alert.alert('Error', 'Failed to end the innings.');
+      }
+    } catch (error) {
+      console.error('Error ending innings:', error);
+      Alert.alert('Error', 'An error occurred while ending the innings.');
+    }
   };
 
   return (
