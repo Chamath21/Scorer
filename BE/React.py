@@ -941,12 +941,43 @@ def update_IsInningsCompleted():
         print(f"Error: {str(e)}")
         return jsonify({"error": "An error occurred while fetching match details."}), 500
 
+@app.route('/save_MatchEnd', methods=['POST'])
+def update_save_MatchEnd():
+    try:
+        matchId = request.json.get('matchId')  # Get matchId from the request body
+
+        if not matchId:
+            print("matchId is missing in the request body")
+            return jsonify({"error": "matchId is required"}), 400
+
+        print(f"Received matchId: {matchId}")  # Log the received matchId
+
+        conn = get_db_connection()
+        cursor = conn.cursor()
+
+        # Ensure you have the correct SQL query for your DB
+        cursor.execute("EXEC  [msd].[Update_MatchEndStatus] ?", matchId)
+
+        conn.commit()
+
+        return jsonify({'message': 'Inning End details saved successfully'}), 200
+
+    except Exception as e:
+        print(f"Error: {str(e)}")
+        return jsonify({"error": "An error occurred while fetching match details."}), 500
 
 
 @app.route('/get_scorecarddata', methods=['GET'])
 def get_match_scorecard_data():
     try:
         matchId = request.args.get('matchId')  # Get the 'matchId' parameter from the URL
+        
+        # Validate matchId
+        if not matchId or not matchId.isdigit():
+            return jsonify({'error': 'Invalid matchId parameter'}), 400
+
+        matchId = int(matchId)
+        
         conn = get_db_connection()  # Get database connection
         cursor = conn.cursor()
 
@@ -954,11 +985,28 @@ def get_match_scorecard_data():
         cursor.execute("EXEC [msd].[Select_MatchDetailsForScoreCard] @MatchId=?", (matchId,))
 
         # Initialize empty lists for batsmen, bowlers, and summary data
+        team_data_availability = []
+
         team_a_batsman_details = []
         team_a_bowler_details = []
         team_a_summary_details = []
 
-        # Fetch batsman data
+        team_b_batsman_details = []
+        team_b_bowler_details = []
+        team_b_summary_details = []
+
+        # Fetch the first result set: Team A & Team B availability (IsFirstInnings, IsSecondInnings)
+        team_data_result = cursor.fetchall()
+        for row in team_data_result:
+            team_data_availability.append({
+                'IsFirstInnings': row.IsFirstInnings,
+                'IsSecondInnings': row.IsSecondInnings,
+            })
+
+        # Move to the next result set for Team A batsman details
+        cursor.nextset()  
+
+        # Fetch Team A batsman data
         batsman_result = cursor.fetchall()
         for row in batsman_result:
             team_a_batsman_details.append({
@@ -972,9 +1020,9 @@ def get_match_scorecard_data():
                 'DismissalType': row.DismissalType
             })
 
-        cursor.nextset()
+        cursor.nextset()  # Move to the next result set for Team A bowler data
 
-        # Fetch bowler data
+        # Fetch Team A bowler data
         bowler_result = cursor.fetchall()
         for row in bowler_result:
             team_a_bowler_details.append({
@@ -987,9 +1035,9 @@ def get_match_scorecard_data():
                 'Average': row.Average
             })
 
-        cursor.nextset()
+        cursor.nextset()  # Move to the next result set for Team A summary data
 
-        # Fetch summary data (runs, overs, wickets, extras)
+        # Fetch Team A summary data (runs, overs, wickets, extras)
         summary_result = cursor.fetchall()
         for row in summary_result:
             team_a_summary_details.append({
@@ -1005,13 +1053,73 @@ def get_match_scorecard_data():
                 'TotalExtras': row.TotalExtras
             })
 
+        if team_data_availability and team_data_availability[0]['IsSecondInnings']:
+
+            cursor.nextset()  # Move to the next result set for Team B batsman data
+
+        # Fetch Team B batsman data
+        batsman_result = cursor.fetchall()
+        for row in batsman_result:
+            team_b_batsman_details.append({
+                'TeamBName': row.TeamBName,
+                'BatsmanName': row.BatsmanName,
+                'Runs': row.Runs,
+                'Balls': row.Balls,
+                'Fours': row.Fours,
+                'Sixes': row.Sixes,
+                'StrikeRate': row.StrikeRate,
+                'DismissalType': row.DismissalType
+            })
+
+        if team_data_availability and team_data_availability[0]['IsSecondInnings']:
+
+            cursor.nextset() 
+
+        # Fetch Team B bowler data
+        bowler_result = cursor.fetchall()
+        for row in bowler_result:
+            team_b_bowler_details.append({
+                'TeamAName': row.TeamAName,
+                'BowlerName': row.BowlerName,
+                'Overs': row.Overs,
+                'Maidens': row.Maidens,
+                'Runs': row.Runs,
+                'Wickets': row.Wickets,
+                'Average': row.Average
+            })
+
+        if team_data_availability and team_data_availability[0]['IsSecondInnings']:
+
+            cursor.nextset() 
+
+        # Fetch Team B summary data (runs, overs, wickets, extras)
+        summary_result = cursor.fetchall()
+        for row in summary_result:
+            team_b_summary_details.append({
+                'Toss': row.Toss,
+                'Runs': row.Runs,
+                'Overs': row.Overs,
+                'Wickets': row.Wickets,
+                'Wides': row.Wides,
+                'NoBalls': row.NoBalls,
+                'Byes': row.Byes,
+                'LegByes': row.LegByes,
+                'Penalities': row.Penalities,
+                'TotalExtras': row.TotalExtras
+            })
+
         cursor.close()  # Close the cursor
+        conn.close()  # Close the connection
 
         # Return the structured data as JSON
         return jsonify({
+            'TeamDataAvailability': team_data_availability,
             'TeamABatsmanDetails': team_a_batsman_details,
             'TeamABowlerDetails': team_a_bowler_details,
-            'TeamASummaryDetails': team_a_summary_details
+            'TeamASummaryDetails': team_a_summary_details,
+            'TeamBBatsmanDetails': team_b_batsman_details,
+            'TeamBBowlerDetails': team_b_bowler_details,
+            'TeamBSummaryDetails': team_b_summary_details
         })
 
     except Exception as e:
