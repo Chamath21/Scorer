@@ -19,6 +19,7 @@ export type RootStackParamList = {
   MatchSummaryScreen: { matchId: number;};
   CreateMatchSeriesScreen: undefined;
   UserProfileScreen: {userId: number;};
+  ProfileUpdateScreen:undefined;
 };
 
 // Type for navigation in each screen
@@ -105,6 +106,11 @@ export type CreateMatchSeriesScreen = NativeStackNavigationProp<
 export type UserProfileScreenRouteProp = NativeStackNavigationProp<
   RootStackParamList,
   'UserProfileScreen'
+>;
+
+export type ProfileUpdateScreenRouteProp = NativeStackNavigationProp<
+  RootStackParamList,
+  'ProfileUpdateScreen'
 >;
 
 export type AddOrSelectTeamScreenNavigationProp =

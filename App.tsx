@@ -22,6 +22,7 @@ import SelectNewBowlersScreen from './screens/SelectNewBowlerScreen';
 import LoginScreen from './screens/LogInScreen';
 import SelectTeamScreen from './screens/SelectTeam';
 import UserProfileScreen from './screens/UserProfileScreen';
+import ProfileUpdateScreen from './screens/ProfileUpdateScreen';
 
 const Stack = createStackNavigator();
 
@@ -33,7 +34,6 @@ const App = () => {
   return (
     <NavigationContainer>
       <Stack.Navigator screenOptions={{ headerShown: false }}>
-            <Stack.Screen name="LoginScreen" component={LoginScreen} />
             <Stack.Screen name="MatchSeriesScreen" component={MatchSeriesScreen} />
             <Stack.Screen name="SeriesWiseMatchScreen" component={SeriesWiseMatchScreen} />
             <Stack.Screen name="SelectTeamScreen" component={SelectTeamScreen} />
@@ -51,6 +51,7 @@ const App = () => {
             <Stack.Screen name="MatchSummaryScreen" component={MatchSummaryScreen} />
             <Stack.Screen name="CreateMatchSeriesScreen" component={CreateMatchSeriesScreen} />
             <Stack.Screen name="UserProfileScreen" component={UserProfileScreen} />
+            <Stack.Screen name="ProfileUpdateScreen" component={ProfileUpdateScreen} />
       </Stack.Navigator>
     </NavigationContainer>
   );
