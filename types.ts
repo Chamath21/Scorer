@@ -17,6 +17,8 @@ export type RootStackParamList = {
   ScoreCardScreen: { matchId: number;};
   EndInningsScreen: { matchId: number;};
   MatchSummaryScreen: { matchId: number;};
+  CreateMatchSeriesScreen: undefined;
+  UserProfileScreen: {userId: number;};
 };
 
 // Type for navigation in each screen
@@ -93,6 +95,16 @@ export type EndInningsScreenRouteProp = NativeStackNavigationProp<
 export type MatchSummaryScreenRouteProp = NativeStackNavigationProp<
   RootStackParamList,
   'MatchSummaryScreen'
+>;
+
+export type CreateMatchSeriesScreen = NativeStackNavigationProp<
+  RootStackParamList,
+  'CreateMatchSeriesScreen'
+>;
+
+export type UserProfileScreenRouteProp = NativeStackNavigationProp<
+  RootStackParamList,
+  'UserProfileScreen'
 >;
 
 export type AddOrSelectTeamScreenNavigationProp =

@@ -8,31 +8,34 @@ import {
   ImageBackground,
   Alert,
 } from 'react-native';
-import axios from 'axios'; 
+import axios from 'axios';
 import { BASE_URL } from '../App';
+import { useNavigation } from '@react-navigation/native';
+import { StackNavigationProp } from '@react-navigation/stack';
+import { RootStackParamList } from '../types'; // 👈 Make sure this is defined
 
-interface LoginScreenProps {
-  onLogin: () => void; 
-}
+type NavigationProp = StackNavigationProp<RootStackParamList, 'UserProfileScreen'>;
 
-const LoginScreen: React.FC<LoginScreenProps> = ({ onLogin }) => {
+const LoginScreen: React.FC = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const navigation = useNavigation<NavigationProp>(); // ✅ hook inside component
 
   const handleLogin = async () => {
     try {
       const response = await axios.post(
         `${BASE_URL}/login`,
-        { email, password }, 
+        { email, password },
         {
           headers: {
             'Content-Type': 'application/json',
           },
         }
       );
-  
-      if (response.status === 200) {
-        onLogin();
+
+      if (response.status === 200 && response.data.userId) {
+        navigation.navigate('UserProfileScreen', { userId: response.data.userId });
+        
       } else {
         Alert.alert('Login Failed', response.data.error || 'Invalid credentials.');
       }
@@ -44,12 +47,12 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ onLogin }) => {
 
   return (
     <ImageBackground
-      source={require('../assets/bg.jpg')} 
+      source={require('../assets/ScorerLogo.png')}
       style={styles.background}
       resizeMode="cover"
     >
       <View style={styles.overlay}>
-        <Text style={styles.title}>User Login</Text>
+        <Text style={styles.title}>Scorer Login</Text>
 
         <TextInput
           style={styles.input}
@@ -92,7 +95,7 @@ const styles = StyleSheet.create({
   },
   overlay: {
     width: '90%',
-    backgroundColor: 'rgba(0, 0, 0, 0.7)', 
+    backgroundColor: 'rgba(0, 0, 0, 0.7)',
     padding: 20,
     borderRadius: 10,
     alignItems: 'center',
@@ -100,7 +103,7 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: '#FFD700', 
+    color: '#FFF',
     marginBottom: 20,
   },
   input: {
@@ -114,7 +117,7 @@ const styles = StyleSheet.create({
     marginBottom: 15,
   },
   button: {
-    backgroundColor: '#FFD700',
+    backgroundColor: '#FFF',
     paddingVertical: 12,
     width: '100%',
     borderRadius: 8,
@@ -130,7 +133,7 @@ const styles = StyleSheet.create({
     marginTop: 10,
   },
   forgotText: {
-    color: '#FFD700',
+    color: '#FFF',
     fontSize: 14,
   },
 });

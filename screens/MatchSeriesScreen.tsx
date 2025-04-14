@@ -45,6 +45,10 @@ const MatchSeriesScreen = () => {
   if (loading) {
     return (
       <View style={styles.loaderContainer}>
+        <Image
+          source={require('./../assets/ScorerLogo.png')} // update the path accordingly
+          style={styles.loadingImage}
+        />
         <ActivityIndicator size="large" color="#FFD700" />
       </View>
     );
@@ -65,6 +69,14 @@ const MatchSeriesScreen = () => {
             <Text style={styles.seriesLocation}>{item.SeriesLocation}</Text>
           </TouchableOpacity>
         )}
+        ListFooterComponent={
+          <TouchableOpacity
+            style={styles.createButton}
+            onPress={() => navigation.navigate('CreateMatchSeriesScreen')}
+          >
+            <Text style={styles.createButtonText}>+ Create Match Series</Text>
+          </TouchableOpacity>
+        }
       />
     </View>
   );
@@ -106,7 +118,28 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#121212',
+    backgroundColor: '#fff', // Optional: set a background
+  },
+  loadingImage: {
+    width: 100,
+    height: 100,
+    marginBottom: 20,
+    resizeMode: 'contain', // or 'cover' depending on the image
+  },
+  createButton: {
+    marginTop: 20,
+    marginBottom: 30,
+    padding: 15,
+    backgroundColor: 'rgba(30, 30, 30, 0.8)',
+    borderRadius: 10,
+    alignItems: 'center',
+    alignSelf: 'center',
+    width: '90%',
+  },
+  createButtonText: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#FFF',
   },
 });
 
