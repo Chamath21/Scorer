@@ -31,7 +31,7 @@ const SelectNewBatterScreen: React.FC = () => {
     if (battingTeamId && matchId) {
         const fetchBatters = async () => {
             try {
-                const response = await axios.get(`${BASE_URL}/get_PlayersByTeamId?teamId=${battingTeamId}&matchId=${matchId}`);
+                const response = await axios.get(`${BASE_URL}/get_BattersByTeamId?teamId=${battingTeamId}&matchId=${matchId}`);
                 setBatters(response.data);
                 console.log(response.data);
             } catch (error) {
@@ -115,6 +115,7 @@ const fetchEndInningsData = async () => {
 
   return (
     <View style={styles.container}>
+      <Text style={styles.title}>Select New Batsman</Text>
       {loading ? (
         <Text style={styles.loadingText}>Loading...</Text>
       ) : batters.length > 0 ? (
@@ -151,6 +152,7 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     marginBottom: 20,
     color: '#fff',
+    marginTop: 30,
   },
   batterRow: {
     flexDirection: 'row',

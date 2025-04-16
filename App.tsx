@@ -26,7 +26,7 @@ import ProfileUpdateScreen from './screens/ProfileUpdateScreen';
 
 const Stack = createStackNavigator();
 
-export const BASE_URL = 'http://192.168.1.7:5000';
+export const BASE_URL = 'http://192.168.1.3:5000';
 
 const App = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false); // ⬅️ Login state

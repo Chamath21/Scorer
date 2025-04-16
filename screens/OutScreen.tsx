@@ -35,7 +35,7 @@ const OutScreen: React.FC = () => {
   const route = useRoute<OutScreenRouteProp>();
 
   // Extract parameters
-  const { matchId, battingTeamId, striker } = route.params;
+  const { matchId, battingTeamId, striker, strikerName } = route.params;
 
   const [selectedDismissal, setSelectedDismissal] = useState<{ label: string; number: number } | null>(null);
 
@@ -64,12 +64,11 @@ const OutScreen: React.FC = () => {
           text: 'Yes',
           onPress: async () => {
             try {
-              // Call the API to add the batsman dismissal
               const response = await axios.post(`${BASE_URL}/AddBatsmanDismissal`, {
                 matchId: matchId,
                 teamId: battingTeamId,
                 playerId: striker,
-                dismissalType: selectedDismissal.number // Send the number of the selected dismissal type
+                dismissalType: selectedDismissal.number 
               });
   
               if (response.status === 200) {
@@ -94,7 +93,7 @@ const OutScreen: React.FC = () => {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>{striker} is OUT!</Text>
+      <Text style={styles.title}>{strikerName} is OUT!</Text>
       {dismissalOptions.map((option) => (
         <TouchableOpacity
           key={option.number}
@@ -117,7 +116,8 @@ const styles = StyleSheet.create({
     flex: 1, 
     backgroundColor: 'white', 
     padding: 20, 
-    alignItems: 'center' 
+    alignItems: 'center',
+    marginTop: 30 
   },
   title: { 
     fontSize: 22, 

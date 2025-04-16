@@ -131,7 +131,6 @@ const ScoreCardScreen = () => {
     }
 
     const renderSecondBattingDetails = ({ item, index }: { item: SecondBattingDetail; index: number }) => {
-        // Check if TeamDataAvailability exists and IsSecondInnings is true
         if (TeamDataAvailability?.IsSecondInnings) {
             return (
                 <View style={[styles.row, index % 2 === 0 ? styles.rowEven : styles.rowOdd]}>
@@ -151,12 +150,11 @@ const ScoreCardScreen = () => {
             );
         }
     
-        return null; // Return null if IsSecondInnings is not available or false
+        return null; 
     };
     
-    // Render Bowling Details with correct type
+    // Bowling Details 
     const renderSecondBowlingDetails = ({ item, index }: { item: SecondBowlingDetail; index: number }) => {
-        // Check if TeamDataAvailability exists and IsSecondInnings is true
         if (TeamDataAvailability?.IsSecondInnings) {
             const rowStyle = index % 2 === 0 ? styles.rowEven : styles.rowOdd;
             return (
@@ -183,6 +181,7 @@ const ScoreCardScreen = () => {
         <ScrollView style={styles.container}>
             <Text style={styles.title}>Match Centre</Text>
             <Text style={styles.toss}>{teamASummaryDetails.Toss}</Text>
+            <Text style={styles.toss}>Result : Match In Progess</Text>
 
             {/* Conditionally Render Team A Batting Details */}
             <Text style={styles.teamName}>{teamABatsmanDetails[0].TeamAName}</Text>
@@ -314,7 +313,7 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,
         backgroundColor: '#fff',
-        paddingTop: 10,
+        paddingTop: 50,
         paddingHorizontal: 15,
     },
     title: {

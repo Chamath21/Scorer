@@ -207,27 +207,38 @@ const SeriesWiseMatchScreen = () => {
         onRequestClose={() => setIsModalVisible(false)}
       >
         <TouchableWithoutFeedback onPress={() => setIsModalVisible(false)}>
-          <View style={styles.modalBackground}>
-            <View style={styles.modalContent}>
-              <Text style={styles.modalTitle}>Choose an Option</Text>
-              {/* Conditionally render options */}
-              {selectedMatch?.MatchStatus === 2 ? (
-                <TouchableOpacity onPress={handleResumeScoring} style={styles.modalButton}>
-                  <Text style={styles.modalButtonText}>Resume Scoring</Text>
-                </TouchableOpacity>
-              ) : (
-                <>
-                  <TouchableOpacity onPress={handleStartMatch} style={styles.modalButton}>
-                    <Text style={styles.modalButtonText}>Start Match</Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity onPress={handleDeleteMatch} style={styles.modalButton}>
-                    <Text style={styles.modalButtonText}>Delete Match</Text>
-                  </TouchableOpacity>
-                </>
-              )}
-            </View>
-          </View>
-        </TouchableWithoutFeedback>
+  <View style={styles.modalBackground}>
+    <View style={styles.modalContent}>
+      <Text style={styles.modalTitle}>Choose an Option</Text>
+
+      {/* Conditionally render options based on MatchStatus */}
+      {selectedMatch?.MatchStatus === 2 ? (
+        <TouchableOpacity onPress={handleResumeScoring} style={styles.modalButton}>
+          <Text style={styles.modalButtonText}>Resume Scoring</Text>
+        </TouchableOpacity>
+      ) : selectedMatch?.MatchStatus === 3 ? (
+        <TouchableOpacity
+          onPress={() => {
+            setIsModalVisible(false);
+            navigation.navigate('MatchSummaryScreen', { matchId: selectedMatch.MatchId });
+          }}
+          style={styles.modalButton}
+        >
+          <Text style={styles.modalButtonText}>View Summary</Text>
+        </TouchableOpacity>
+      ) : (
+        <>
+          <TouchableOpacity onPress={handleStartMatch} style={styles.modalButton}>
+            <Text style={styles.modalButtonText}>Start Match</Text>
+          </TouchableOpacity>
+          <TouchableOpacity onPress={handleDeleteMatch} style={styles.modalButton}>
+            <Text style={styles.modalButtonText}>Delete Match</Text>
+          </TouchableOpacity>
+        </>
+      )}
+    </View>
+  </View>
+</TouchableWithoutFeedback>
       </Modal>
     </View>
   );

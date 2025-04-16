@@ -63,6 +63,8 @@ const MatchScoringScreen = () => {
 
   const [bowlerOvers, setBowlerOvers] = useState<number>(0.0);
   const [bowlerballs, setBowlerballs] = useState<number>(0.0);
+  const [matchBetween, setmatchBetween] = useState<string>();
+  const [battingTeam, setbattingTeam] = useState<string>();
 
   const navigation2 = useNavigation<MatchSummaryScreenRouteProp>();
   const [isEndMatchModalVisible, setisEndMatchModalVisible] = useState<boolean>(false);
@@ -71,9 +73,9 @@ const MatchScoringScreen = () => {
     const fetchMatchData = async () => {
       try {
         const response = await axios.get(`${BASE_URL}/get_matchstartingdata?matchId=${matchId}`);
-        const { batsmen, bowlers, totalScore, wickets, overCount, ballsForOver } = response.data;
+        const { batsmen, bowlers, totalScore, wickets, overCount, ballsForOver, matchBetween, battingTeam } = response.data;
 
-        console.log("API Response: ", response.data); // Debugging log
+        console.log("API Response: ", response.data); 
         const initializedBatsmen = batsmen.map((batsman: any) => ({
           ...batsman,
           runs: batsman.runs || 0,
@@ -99,6 +101,8 @@ const MatchScoringScreen = () => {
         setBallsInOver(ballsForOver || 0)
         setBowlerballs(bowlers[0].balls || 0)
         setBowlerOvers(bowlers[0].overs || 0)
+        setmatchBetween(matchBetween)
+        setbattingTeam(battingTeam)
       } catch (error) {
         console.error("Error fetching match data: ", error);
       }
@@ -312,6 +316,7 @@ const MatchScoringScreen = () => {
         matchId: matchId,
         battingTeamId: battingTeamId,
         striker: striker.batsmanId,
+        strikerName: striker.batsmanName,
         nonStriker: nonStriker.batsmanId,  // Pass the non-striker along with the striker
       });
     }
@@ -407,8 +412,8 @@ const MatchScoringScreen = () => {
         <TouchableOpacity onPress={handleMatchCentreClick}>
           <Text style={styles.title}>Match Centre</Text>
         </TouchableOpacity>
-        <Text style={styles.teamName}>Team A vs Team B</Text>
-        <Text style={styles.innings}>1st Innings</Text>
+        <Text style={styles.teamName}>{matchBetween}</Text>
+        <Text style={styles.innings}>{battingTeam}</Text>
 
         <View style={styles.scoreContainer}>
           <Text style={styles.score}>{score} - {wickets}</Text>
@@ -611,7 +616,7 @@ const styles = StyleSheet.create({
     flexGrow: 1,
     alignItems: 'center',
     justifyContent: 'flex-start',
-    paddingTop: 10,
+    paddingTop: 30,
     paddingBottom: 10,
   },
   title: {

@@ -16,6 +16,8 @@ const SelectBowlersScreen = () => {
   const route = useRoute<SelectBowlersScreenRouteProp>();
   const navigation = useNavigation();
   const navigation1 = useNavigation<ScoringScreenNavigationProp>();
+
+  
   const { matchId, selectedBatterIds } = route.params;
 
   const [bowlers, setBowlers] = useState<Bowler[]>([]);
@@ -49,7 +51,6 @@ const SelectBowlersScreen = () => {
       return;
     }
 
-    // Prepare the data to send in the API call
     const data = {
       matchId,
       selectedBatterIds, // Array of selected batter IDs

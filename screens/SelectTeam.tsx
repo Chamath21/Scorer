@@ -175,7 +175,7 @@ const SelectTeamScreen: React.FC<SelectTeamScreenProps> = ({ navigation, route }
               onChangeText={setNewTeamPictureUrl}
             />
 
-            <Button title="Save Team" onPress={handleAddTeam} />
+            <Button title="Save Team" onPress={handleAddTeam} color="gray"/>
             <Button title="Cancel" onPress={() => setShowModal(false)} color="red" />
           </View>
         </View>

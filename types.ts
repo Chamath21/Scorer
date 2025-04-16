@@ -11,7 +11,7 @@ export type RootStackParamList = {
   ScoringScreen: { matchId: number };
   SelectBattersScreen: { BattingTeamId: string; matchId: number };
   SelectBowlersScreen: { matchId: string; selectedBatterIds: number[] };
-  OutScreen: { matchId: number; battingTeamId: number; striker:  number; nonStriker: number };
+  OutScreen: { matchId: number; battingTeamId: number; striker:  number; nonStriker: number, strikerName: string; };
   SelectNewBatterScreen: { matchId: number; battingTeamId: number; };
   SelectNewBowlersScreen: { matchId: number;};
   ScoreCardScreen: { matchId: number;};
