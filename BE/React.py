@@ -4,43 +4,45 @@ import pyodbc
 
 app = Flask(__name__)
 
-# Enable CORS for all routes
 CORS(app, resources={r"/*": {"origins": "*"}})
 
 # Database connection function (to avoid connection leaks)
 def get_db_connection():
     return pyodbc.connect(
         'DRIVER={SQL Server};'
-        'SERVER=ANONYMOUS;'  # Replace with actual server name
+        'SERVER=ANONYMOUS;'  
         'DATABASE=Scorer;'
-        'Trusted_Connection=yes;'  # Change if using SQL authentication
+        'Trusted_Connection=yes;' 
     )
 
 @app.route('/login', methods=['POST'])
 def login():
     try:
-        # Parse JSON request
         request_data = request.get_json()
         email = request_data.get('email')
         password = request_data.get('password')
 
-        # Ensure both fields are provided
         if not email or not password:
             return jsonify({'error': 'Email and password are required'}), 400
 
-        # Establish a new database connection
         conn = get_db_connection()
         cursor = conn.cursor()
 
-        # Execute stored procedure
         cursor.execute("{CALL [msd].[Validate_UserLogin] (?, ?)}", (email, password))
         result = cursor.fetchone()
 
-        # Process result
         if result is None:
             return jsonify({'error': 'Invalid credentials'}), 401
         else:
-            return jsonify({'message': 'Login successful'}), 200
+            user_id = result.UserId
+            user_name = result.UserName
+            user_email = result.UserEmail
+            return jsonify({
+                'message': 'Login successful',
+                'userId': user_id,
+                'userName': user_name,
+                'email': user_email
+            }), 200
 
     except Exception as e:
         print(f"Error processing login: {str(e)}")
@@ -70,10 +72,49 @@ def get_seiesdata():
         return jsonify(series_data)
         
     except Exception as e:
-        # Handle exceptions and return an error response
         error_message = f"Error fetching data: {str(e)}"
-        print(error_message)  # Print the error message to the console
+        print(error_message)  
         return jsonify({'error': error_message}), 500
+    
+@app.route('/get_user_profile', methods=['GET'])
+def get_user_profile():
+    try:
+        user_id = request.args.get('userId')
+        
+        if not user_id:
+            return jsonify({'error': 'Missing userId parameter'}), 400
+        
+        conn = get_db_connection()
+        cursor = conn.cursor()
+
+        cursor.execute("{CALL [msd].[Get_UserProfile] (?)}", (user_id,))
+
+        series_list = []
+        for row in cursor.fetchall():
+            series_list.append({
+                'seriesId': row.SeriesId,
+                'seriesName': row.SeriesName,
+                'seriesLocation': row.SeriesLocation,
+                'pictureUrl': row.PictureUrl
+            })
+
+        cursor.nextset()
+        user_details = cursor.fetchone()
+        if user_details is None:
+            return jsonify({'error': 'User details not found'}), 404
+        
+        profile = {
+            'userId': user_details.UserId,
+            'userName': user_details.UserName,
+            'userEmail': user_details.UserEmail,
+            'assignedSeries': series_list
+        }
+
+        return jsonify(profile), 200
+
+    except Exception as e:
+        print(f"Error fetching user profile: {str(e)}")
+        return jsonify({'error': str(e)}), 500
 
 
 @app.route('/get_SeriesWisematches', methods=['GET'])
@@ -81,17 +122,13 @@ def get_series_match_details():
     try:
 
         seriesId = request.args.get('seriesId', type=int)
-        # Create a database connection
         conn = get_db_connection()
         cursor = conn.cursor()
 
-        # Query to fetch match details (Replace with your actual query)
         cursor.execute("EXEC [msd].[SelectMatchListDetails] ?", (seriesId))
 
-        # Prepare list to hold match details
         match_details = []
 
-        # Fetch rows from the result
         for row in cursor.fetchall():
             match = {
                 "MatchLocation": row.MatchLocation,
@@ -109,7 +146,6 @@ def get_series_match_details():
 
             print(match_details)
 
-        # Return the match details as a JSON response
         return jsonify(match_details), 200
 
     except Exception as e:
@@ -121,17 +157,13 @@ def get_series_match_details():
 def get_team_details():
     try:
 
-        # Create a database connection
         conn = get_db_connection()
         cursor = conn.cursor()
 
-        # Query to fetch match details (Replace with your actual query)
         cursor.execute("EXEC [msd].[Select_TeamDetails]")
 
-        # Prepare list to hold match details
         team_details = []
 
-        # Fetch rows from the result
         for row in cursor.fetchall():
             team = {
                 "TeamLocation": row.TeamLocation,
@@ -143,7 +175,6 @@ def get_team_details():
 
             print(team_details)
 
-        # Return the match details as a JSON response
         return jsonify(team_details), 200
 
     except Exception as e:
@@ -154,30 +185,23 @@ def get_team_details():
 @app.route('/get_TeamDetailsById', methods=['GET'])
 def get_team_details_by_id():
     try:
-        # Get the teamId from the query parameters
         teamId = request.args.get('teamId', type=int)
         
-        # Check if the teamId is provided and is valid
         if teamId is None:
             return jsonify({"error": "teamId is required"}), 400
 
-        # Create a database connection
         conn = get_db_connection()
         cursor = conn.cursor()
 
-        # Query to fetch the team details based on teamId
         cursor.execute("{CALL [msd].[Select_TeamDataByTeamId] (?)}", (teamId,))
 
-        # Fetch the team details from the result
-        team_details = cursor.fetchone()  # Use fetchone() if you're expecting only one record
+        team_details = cursor.fetchone()  
 
         print(team_details)
 
-        # If no team is found, return an error message
         if team_details is None:
             return jsonify({"error": "Team not found"}), 404
 
-        # Create a dictionary to hold the team data
         team = {
             "TeamId": team_details.TeamId,
             "TeamName": team_details.TeamName,
@@ -185,47 +209,37 @@ def get_team_details_by_id():
             "TeamLocation": team_details.TeamLocation
         }
 
-        # Return the team details as a JSON response
         return jsonify(team), 200
 
     except Exception as e:
-        # Log the error for debugging purposes
         error_message = f"Error fetching team details: {str(e)}"
         print(error_message)
         
-        # Return an error message if an exception occurs
         return jsonify({"error": error_message}), 500
     
 @app.route('/add_teams', methods=['POST'])
 def add_teams():
     try:
-        # Get the data from the request
         request_data = request.get_json()
 
-        # Extract values from the request data
         team_Name = request_data['TeamName']
         team_location = request_data['TeamLocation']
         team_pictureurl = request_data['TeamPictureUrl']
 
-        #series_id = request_data['seriesid']
-        # Create a cursor object to execute SQL commands
         conn = get_db_connection()
         cursor = conn.cursor()
 
-        # Execute the stored procedure [msd].[AddSeries] with the values as parameters
         cursor.execute("{CALL [msd].[Insert_Teams] (?, ?, ?)}", 
                        (team_Name, team_location, team_pictureurl))
 
-        # Commit the transaction
         conn.commit()
 
         response_data = {'message': 'Team inserted successfully.'}
         return jsonify(response_data), 200
 
     except Exception as e:
-        # Handle exceptions and rollback the transaction if an error occurs
         error_message = f"Error inserting data: {str(e)}"
-        print(error_message)  # Print the error message to the console
+        print(error_message) 
         return jsonify({'error': error_message}), 500
 
 
@@ -233,10 +247,8 @@ def add_teams():
 def save_match():
     try:
 
-        # Get the data from the request
         request_data = request.get_json()
 
-        # Extract values from the request data
         matchType = request_data['matchType']
         matchOvers = request_data['matchOvers']
         matchLocation = request_data['matchLocation']
@@ -244,27 +256,23 @@ def save_match():
         seriesId = request_data['seriesId']
         teamId = request_data['teamId']
         scorer_name = request_data['scorerName']
-        #series_id = request_data['seriesid']
-        # Create a cursor object to execute SQL commands
+
         conn = get_db_connection()
         cursor = conn.cursor()
 
         print(matchType, matchOvers, matchLocation, matchDateTime, seriesId, teamId, scorer_name)
-        # Execute the stored procedure [msd].[AddSeries] with the values as parameters
         cursor.execute("{CALL [msd].[AddMatchDetails] (?, ?, ?, ?, ?, ?, ?)}", 
                        (matchType, matchOvers, matchLocation, matchDateTime, seriesId, teamId, scorer_name))
         
        
-        # Commit the transaction
         conn.commit()
 
         response_data = {'message': 'Match inserted successfully.'}
         return jsonify(response_data), 200
 
     except Exception as e:
-        # Handle exceptions and rollback the transaction if an error occurs
         error_message = f"Error inserting data: {str(e)}"
-        print(error_message)  # Print the error message to the console
+        print(error_message) 
         return jsonify({'error': error_message}), 500
     
 @app.route('/save_player', methods=['POST'])
@@ -285,16 +293,14 @@ def save_player():
         cursor = conn.cursor()
         cursor.execute("{CALL [msd].[Add_Player] (?, ?, ?, ?, ?, ?)}", (teamId, playername, bowlingstyle, battingstyle, birthdate, iswicketkeeper))
 
-        # Commit the transaction
         conn.commit()
 
         response_data = {'message': 'Player inserted successfully.'}
         return jsonify(response_data), 200
 
     except Exception as e:
-        # Handle exceptions and rollback the transaction if an error occurs
         error_message = f"Error inserting data: {str(e)}"
-        print(error_message)  # Print the error message to the console
+        print(error_message)  
         return jsonify({'error': error_message}), 500
     
 @app.route('/get_Players')
@@ -320,45 +326,36 @@ def get_players_data():
         return jsonify(player_data)
 
     except Exception as e:
-        # Handle exceptions and return an error response
         error_message = f"Error fetching data: {str(e)}"
-        print(error_message)  # Print the error message to the console
+        print(error_message)  
         return jsonify({'error': error_message}), 500
     
 @app.route('/deleteMatchById', methods=['POST'])
 def deleteMatch():
     try:
-        # Parse JSON request
         request_data = request.get_json()
         matchId = request_data.get('matchId')
 
         if not matchId:
-            return jsonify({'error': 'matchId is required'}), 400  # Return error if matchId is missing
+            return jsonify({'error': 'matchId is required'}), 400 
 
-        # Establish a new database connection
         conn = get_db_connection()
         cursor = conn.cursor()
 
-        # Execute stored procedure
         cursor.execute("{CALL [msd].[DeleteMatch] (?)}", (matchId))
 
-        # Commit the transaction
         conn.commit()
-
-        # Check if the delete was successful
-        # If the stored procedure returns a result or message indicating success, you can check it here.
-        # Assuming no result means success (modify if needed based on your stored procedure).
         
-        return jsonify({'message': 'Delete successful'}), 200  # Return success message
+        return jsonify({'message': 'Delete successful'}), 200  
 
     except Exception as e:
         print(f"Error processing deletion: {str(e)}")
-        return jsonify({'error': str(e)}), 500  # Return error response on failure
+        return jsonify({'error': str(e)}), 500  
     
 @app.route('/get_MatchDetailsByMatchId', methods=['GET'])
 def get_match_detailsbyId():
     try:
-        matchId = request.args.get('matchId')  # Use request.args.get() for query parameters
+        matchId = request.args.get('matchId')  
         
         if not matchId:
             return jsonify({"error": "Match ID is required"}), 400
@@ -391,43 +388,35 @@ def get_match_detailsbyId():
 @app.route('/saveTossDetails', methods=['POST'])
 def saveTossDetails():
     try:
-        # Parse JSON request
         request_data = request.get_json()
 
         matchId = request_data.get('matchId')
         teamName = request_data.get('teamName')
         selectedOption = request_data.get('selectedOption')
 
-        # Check if matchId, teamId, and selectedOption are provided
         if not matchId or not teamName or not selectedOption:
             return jsonify({'error': 'matchId, teamId, and selectedOption are required'}), 400
 
-        # Establish a new database connection
         conn = get_db_connection()
         cursor = conn.cursor()
 
-        # You can adjust the SQL to save the toss details
-        # Assuming you want to save the toss details instead of deleting a match
         cursor.execute("EXEC [msd].[Update_MatchTossDetails] ?, ?, ?", (matchId, teamName, selectedOption))
 
-        # Commit the transaction
         conn.commit()
 
-        # Return success message
         return jsonify({'message': 'Toss details saved successfully'}), 200
 
     except Exception as e:
         print(f"Error processing toss details: {str(e)}")
-        return jsonify({'error': str(e)}), 500  # Return error response on failure
+        return jsonify({'error': str(e)}), 500 
 
 @app.route('/get_PlayersByTeamName', methods=['GET'])
 def get_players_data_by_team_name():
     try:
-        teamName = request.args.get('teamName')  # Get the 'teamName' parameter from the URL
-        conn = get_db_connection()  # Get database connection
+        teamName = request.args.get('teamName')  
+        conn = get_db_connection()  
         cursor = conn.cursor()
 
-        # Replace the SQL query with the one you need
         cursor.execute("EXEC [msd].[GetPlayerDataByTeamName] @teamName=?", (teamName,))
 
         player_data = []
@@ -441,57 +430,80 @@ def get_players_data_by_team_name():
                 'playerId': player_id
             })
 
-        cursor.close()  # Close the cursor
-
-        return jsonify(player_data)  # Return the player data as a JSON response
-
+        cursor.close()  
+        return jsonify(player_data)  
     except Exception as e:
-        # Handle exceptions and return an error response
         error_message = f"Error fetching data: {str(e)}"
-        print(error_message)  # Log error to console
-        return jsonify({'error': error_message}), 500  # Return error message
+        print(error_message)  
+        return jsonify({'error': error_message}), 500  
 
 @app.route('/get_PlayersByTeamId', methods=['GET'])
 def get_players_data_by_team_Id():
     try:
-        teamId = request.args.get('teamId', type=int)  # Get the 'teamId' parameter from the URL
-        matchId = request.args.get('matchId', type=int)  # Get the 'matchId' parameter from the URL
+        teamId = request.args.get('teamId', type=int)  
+        matchId = request.args.get('matchId', type=int)  
 
-        conn = get_db_connection()  # Get database connection
+        conn = get_db_connection()  
         cursor = conn.cursor()
 
-        # Execute the stored procedure with the parameters
         cursor.execute("EXEC [msd].[GetPlayerDataByTeamId] @TeamId=?, @MatchId=?", (teamId, matchId))
 
         player_data = []
 
-        # Loop through the results and store them in player_data list
         for row in cursor.fetchall():
-            player_id = row[0]  # PlayerId is in the first column
-            player_name = row[1]  # PlayerName is in the second column
+            player_id = row[0]  
+            player_name = row[1]  
             player_data.append({
                 'playerName': player_name,
                 'playerId': player_id
             })
 
-        cursor.close()  # Close the cursor
+        cursor.close()  
 
-        return jsonify(player_data)  # Return the player data as a JSON response
+        return jsonify(player_data)  
 
     except Exception as e:
-        # Handle exceptions and return an error response
         error_message = f"Error fetching data: {str(e)}"
-        print(error_message)  # Log error to console
-        return jsonify({'error': error_message}), 500  # Return error message
-
-@app.route('/get_bowlers', methods=['GET'])  # Fix route name here
-def get_bowlers_match_id():
+        print(error_message)  
+        return jsonify({'error': error_message}), 500  
+    
+@app.route('/get_BattersByTeamId', methods=['GET'])
+def get_batters_data_by_team_Id():
     try:
-        matchId = request.args.get('matchId')  # Get the 'teamName' parameter from the URL
-        conn = get_db_connection()  # Get database connection
+        teamId = request.args.get('teamId', type=int)  
+        matchId = request.args.get('matchId', type=int)  
+
+        conn = get_db_connection()  
         cursor = conn.cursor()
 
-        # Replace the SQL query with the o ne you need
+        cursor.execute("EXEC [msd].[GetBattersByTeamId]  @TeamId=?, @MatchId=?", (teamId, matchId))
+
+        player_data = []
+
+        # Loop through the results and store them in player_data list
+        for row in cursor.fetchall():
+            player_id = row[0]  
+            player_name = row[1] 
+            player_data.append({
+                'playerName': player_name,
+                'playerId': player_id
+            })
+
+        cursor.close()  
+        return jsonify(player_data)  
+
+    except Exception as e:
+        error_message = f"Error fetching data: {str(e)}"
+        print(error_message)  
+        return jsonify({'error': error_message}), 500  
+
+@app.route('/get_bowlers', methods=['GET']) 
+def get_bowlers_match_id():
+    try:
+        matchId = request.args.get('matchId')  
+        conn = get_db_connection() 
+        cursor = conn.cursor()
+        
         cursor.execute("EXEC [msd].[GetPlayerDataByMatchId] @matchId=?", (matchId))
 
         player_data = []
@@ -505,15 +517,15 @@ def get_bowlers_match_id():
                 'playerId': player_id
             })
 
-        cursor.close()  # Close the cursor
+        cursor.close()  
 
-        return jsonify(player_data)  # Return the player data as a JSON response
+        return jsonify(player_data)  
 
     except Exception as e:
-        # Handle exceptions and return an error response
+        
         error_message = f"Error fetching data: {str(e)}"
-        print(error_message)  # Log error to console
-        return jsonify({'error': error_message}), 500  # Return error message
+        print(error_message)  
+        return jsonify({'error': error_message}), 500  
 
 @app.route('/save_selectedplayerdata', methods=['POST'])
 def save_match_starting_data():
@@ -523,30 +535,23 @@ def save_match_starting_data():
         selected_batter_ids = data['selectedBatterIds']
         selected_bowler_id = data['selectedBowlerId']
 
-        # Ensure all incoming data is valid
         if not match_id or not selected_batter_ids or not selected_bowler_id:
             return jsonify({"error": "Missing required data"}), 400
 
-        # Get database connection
         conn = get_db_connection()
         cursor = conn.cursor()
 
-        # Insert the selected batters
         for batter_id in selected_batter_ids:
             cursor.execute("EXEC [msd].[InsertSelectedBatter] @matchId=?, @batterId=?", (match_id, batter_id))
 
-        # Insert the selected bowler
         cursor.execute("EXEC [msd].[InsertSelectedBowler] @matchId=?, @bowlerId=?", (match_id, selected_bowler_id))
 
-        # Commit the changes to the database
         conn.commit()
         cursor.close()
 
-        # Return success response
         return jsonify({"message": "Match started successfully"}), 200
 
     except Exception as e:
-        # Return error message if something goes wrong
         return jsonify({"error": str(e)}), 500
 
 
@@ -557,60 +562,46 @@ def save_selectedNewBowle():
         match_id = data['matchId']
         selected_bowler_id = data['selectedBowlerId']
 
-        # Get database connection
         conn = get_db_connection()
         cursor = conn.cursor()
 
-        # Insert the selected bowler
         cursor.execute("EXEC [msd].[InsertNewSelectedBowler] @matchId=?, @bowlerId=?", (match_id, selected_bowler_id))
 
-        # Commit the changes to the database
         conn.commit()
         cursor.close()
 
-        # Return success response
         return jsonify({"message": "Match started successfully"}), 200
 
     except Exception as e:
-        # Return error message if something goes wrong
         return jsonify({"error": str(e)}), 500
 
 @app.route('/save_selectedNewBatsman', methods=['POST'])
 def save_new_Batsaman_data():
     try:
-        # Parse the incoming JSON data
         data = request.json
-        match_id = data.get('matchId')  # Use .get() to handle missing keys gracefully
+        match_id = data.get('matchId') 
         selected_batter_ids = data.get('selectedBatterIds')
 
-        # Log the received data for debugging
         print(f"Received match_id: {match_id}")
         print(f"Received selected_batter_ids: {selected_batter_ids}")
 
-        # Ensure that both match_id and selected_batter_ids are provided
         if not match_id or not selected_batter_ids:
             return jsonify({"error": "Missing required data"}), 400
 
-        # Get database connection
         conn = get_db_connection()
         cursor = conn.cursor()
 
-        # Log the batter IDs being processed
         print(f"Processing the following batter IDs: {selected_batter_ids}")
 
-        # Insert the selected batters into the database
         for batter_id in selected_batter_ids:
             cursor.execute("EXEC [msd].[InsertSelectedNewBatter] @matchId=?, @batterId=?", (match_id, batter_id))
 
-        # Commit the changes to the database
         conn.commit()
         cursor.close()
 
-        # Return success response
         return jsonify({"message": "Match started successfully"}), 200
 
     except Exception as e:
-        # Log error if something goes wrong
         print(f"Error: {str(e)}")
         return jsonify({"error": str(e)}), 500
 
@@ -618,17 +609,16 @@ def save_new_Batsaman_data():
 @app.route('/get_matchstartingdata', methods=['GET'])
 def get_match_staring_data():
     try:
-        matchId = request.args.get('matchId')  # Get the 'matchId' parameter from the URL
-        conn = get_db_connection()  # Get database connection
+        matchId = request.args.get('matchId')  
+        conn = get_db_connection()  
         cursor = conn.cursor()
 
-        # Execute the stored procedure with matchId parameter
         cursor.execute("EXEC [msd].[GetMatchStartingDataByMatchId] @MatchId=?", (matchId,))
 
-        # Initialize empty lists for batsmen and bowlers
+
         batsmen_data = []
         bowlers_data = []
-        totalScore = 0  # Default total score
+        totalScore = 0 
         wickets = 0
         overCount = 0
         ballsForOver = 0
@@ -691,31 +681,66 @@ def get_match_staring_data():
         if total_score_result:
             ballsForOver = total_balls_per_over_result.BallsForOver  # Extract total runs
 
+        cursor.nextset()
+        
+        match_between_data = cursor.fetchone()
+        if total_score_result: 
+            matchBetweenResult = match_between_data.MatchBetween   
 
-        cursor.close()  # Close the cursor
+        cursor.nextset()
+        
+        match_batting_data = cursor.fetchone()
+        if total_score_result: 
+            battingTeam = match_batting_data.BattingTeam 
+        
+        cursor.close()  
 
-        # Return batsman, bowler data, and total score as a JSON response
         return jsonify({
             'batsmen': batsmen_data,
             'bowlers': bowlers_data,
             'totalScore': totalScore,
             'wickets': wickets,
             'overCount': overCount,
-            'ballsForOver': ballsForOver
-              # Include total score in response
+            'ballsForOver': ballsForOver,
+            'matchBetween': matchBetweenResult,
+            'battingTeam': battingTeam,
+             
         })
 
     except Exception as e:
-        # Handle exceptions and return an error response
         error_message = f"Error fetching data: {str(e)}"
-        print(error_message)  # Log error to console
-        return jsonify({'error': error_message}), 500  # Return error message
+        print(error_message)  
+        return jsonify({'error': error_message}), 500 
+  
+@app.route('/add_series', methods=['POST'])
+def add_series():
+    try:
 
+        request_data = request.get_json()
+
+        series_Name = request_data['SeriesName']
+        series_location = request_data['SeriesLocation']
+        series_pictureurl = request_data['PictureUrl']
+
+        conn = get_db_connection()
+        cursor = conn.cursor()
+
+        cursor.execute("{CALL [msd].[AddSeries] (?, ?, ?)}", 
+                       (series_Name, series_location, series_pictureurl))
+
+        conn.commit()
+
+        response_data = {'message': 'Team inserted successfully.'}
+        return jsonify(response_data), 200
+
+    except Exception as e:
+        error_message = f"Error inserting data: {str(e)}"
+        print(error_message) 
+        return jsonify({'error': error_message}), 500
 
 @app.route('/AddBatsmanDismissal', methods=['POST'])
 def AddBatsmanDismissal():
     try:
-        # Parse JSON request
         request_data = request.get_json()
 
         matchId = request_data.get('matchId')
@@ -723,28 +748,22 @@ def AddBatsmanDismissal():
         teamId = request_data.get('teamId')
         dismissalType = request_data.get('dismissalType')
 
-        # Establish a new database connection
         conn = get_db_connection()
         cursor = conn.cursor()
 
-        # You can adjust the SQL to save the toss details
-        # Assuming you want to save the toss details instead of deleting a match
         cursor.execute("EXEC [msd].[Add_PlayerDismissal] ?, ?, ?, ?", (matchId, playerId, teamId, dismissalType))
 
-        # Commit the transaction
         conn.commit()
 
-        # Return success message
         return jsonify({'message': 'Dismissal details saved successfully'}), 200
 
     except Exception as e:
         print(f"Error processing toss details: {str(e)}")
-        return jsonify({'error': str(e)}), 500  # Return error response on failure
+        return jsonify({'error': str(e)}), 500  
 
 @app.route('/AddRuns', methods=['POST'])
 def AddRuns():
     try:
-        # Parse JSON request
         request_data = request.get_json()
 
         print(request_data)
@@ -759,66 +778,55 @@ def AddRuns():
         batsmanFours = request_data.get('batsmanFours')
         batsmanSixes = request_data.get('batsmanSixes')
         runs = request_data.get('runs')
-        isExtra = request_data.get('isExtra')  # Get the isExtra field
-        extraRuns = request_data.get('extraRuns', 0)  # Get extra runs (if any)
+        isExtra = request_data.get('isExtra')  
+        extraRuns = request_data.get('extraRuns', 0)  
         isBoundary = request_data.get('isBoundary')
-        overs = request_data.get('overs')  # Get overs value
-        ballsInOver = request_data.get('ballsInOver')  # Get overs value
+        overs = request_data.get('overs') 
+        ballsInOver = request_data.get('ballsInOver')  
         isBowlerExtra = request_data.get('isBowlerExtra')
         bowlersballs = request_data.get('bowlersballs')
         bowlerOvers = request_data.get('bowlerOvers')
         extraType = request_data.get('extraType')
 
-        # Validate input data
         if not matchId or not batsmanId or runs is None:
             return jsonify({'error': 'Missing required fields'}), 400
 
-        # Establish a new database connection
         conn = get_db_connection()
         cursor = conn.cursor()
 
-        # Execute the stored procedure with parameters
         cursor.execute("EXEC [msd].[Add_Runs] ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?", 
                        (matchId, bowlingTeamId, battingTeamId, batsmanId, batsmanRuns, batsmanBalls, batsmanFours, batsmanSixes, bowlerId, runs, isExtra, extraRuns, isBoundary, overs, ballsInOver, isBowlerExtra, bowlersballs, bowlerOvers, extraType))
 
-        # Commit the transaction
         conn.commit()
 
-        # Return success message
         return jsonify({'message': 'Run details saved successfully'}), 200
 
     except Exception as e:
         print(f"Error processing run: {str(e)}")
-        return jsonify({'error': str(e)}), 500  # Return error response on failure
+        return jsonify({'error': str(e)}), 500  
 
 @app.route('/get_IsOverCompleted', methods=['GET'])
 def get_IsOverCompleted():
     try:
-        # Get the matchId from the query parameters
         matchId = request.args.get('matchId')
 
         if not matchId:
             return jsonify({"error": "matchId is required"}), 400
 
-        # Create a database connection
         conn = get_db_connection()
         cursor = conn.cursor()
 
-        # Execute the stored procedure with the matchId
         cursor.execute("EXEC [msd].[Get_OverCompletionData] ?", matchId)
 
-        # Fetch the result
         result = cursor.fetchone()
 
         if result:
-            # Return the result as a JSON response
             is_over_completed = result[0]
             return jsonify({"IsOverCompleted": is_over_completed}), 200
         else:
             return jsonify({"error": "No data found for the provided matchId"}), 404
 
     except Exception as e:
-    # If there's an error, log and return the error
         error_message = f"Error fetching match details: {str(e)}"
         print(error_message)
         return jsonify({"error": error_message}), 500
@@ -826,30 +834,25 @@ def get_IsOverCompleted():
 @app.route('/get_NewInningsMatchData', methods=['GET'])
 def get_NewInningsMatchData():
     try:
-        # Get the matchId from the query parameters
         matchId = request.args.get('matchId')
 
         if not matchId:
             return jsonify({"error": "matchId is required"}), 400
 
-        # Create a database connection
         conn = get_db_connection()
         cursor = conn.cursor()
 
-        # Execute the stored procedure with the matchId
         cursor.execute("EXEC [msd].[Select_SecondBattingTeamDetails] ?", matchId)
 
-        # Fetch the result
         result = cursor.fetchone()
 
         if result:
-            # Return the result as a JSON response
             team_id = result[0]
             return jsonify({"TeamId": team_id}), 200
         else:
              return jsonify({"error": "No data found for the provided matchId"}), 404
     except Exception as e:
-        # If there's an error, log and return the error
+
         error_message = f"Error fetching match details: {str(e)}"
         print(error_message)
         return jsonify({"error": error_message}), 500
@@ -857,30 +860,25 @@ def get_NewInningsMatchData():
 @app.route('/get_MatchEndData', methods=['GET'])
 def get_MatchEndData():
     try:
-        # Get the matchId from the query parameters
+
         matchId = request.args.get('matchId')
 
         if not matchId:
             return jsonify({"error": "matchId is required"}), 400
 
-        # Create a database connection
         conn = get_db_connection()
         cursor = conn.cursor()
 
-        # Execute the stored procedure with the matchId
         cursor.execute("EXEC [msd].[IsMatchOver] ?", matchId)
 
-        # Fetch the result
         result = cursor.fetchone()
 
         if result:
-            # Return the result as a JSON response
             IsMatchOver = result[0]
             return jsonify({"IsMatchOver": IsMatchOver}), 200
         else:
              return jsonify({"error": "No data found for the provided matchId"}), 404
     except Exception as e:
-        # If there's an error, log and return the error
         error_message = f"Error fetching match details: {str(e)}"
         print(error_message)
         return jsonify({"error": error_message}), 500
@@ -919,18 +917,16 @@ def get_IsInningsCompleted():
 @app.route('/save_inningsEnd', methods=['POST'])
 def update_IsInningsCompleted():
     try:
-        matchId = request.json.get('matchId')  # Get matchId from the request body
+        matchId = request.json.get('matchId')  
 
         if not matchId:
             print("matchId is missing in the request body")
             return jsonify({"error": "matchId is required"}), 400
 
-        print(f"Received matchId: {matchId}")  # Log the received matchId
-
+        print(f"Received matchId: {matchId}")  
         conn = get_db_connection()
         cursor = conn.cursor()
 
-        # Ensure you have the correct SQL query for your DB
         cursor.execute("EXEC [msd].[Update_MatchDetailsForInningsEnd] ?", matchId)
 
         conn.commit()
@@ -944,18 +940,17 @@ def update_IsInningsCompleted():
 @app.route('/save_MatchEnd', methods=['POST'])
 def update_save_MatchEnd():
     try:
-        matchId = request.json.get('matchId')  # Get matchId from the request body
+        matchId = request.json.get('matchId')  
 
         if not matchId:
             print("matchId is missing in the request body")
             return jsonify({"error": "matchId is required"}), 400
 
-        print(f"Received matchId: {matchId}")  # Log the received matchId
+        print(f"Received matchId: {matchId}")  
 
         conn = get_db_connection()
         cursor = conn.cursor()
 
-        # Ensure you have the correct SQL query for your DB
         cursor.execute("EXEC  [msd].[Update_MatchEndStatus] ?", matchId)
 
         conn.commit()
@@ -970,43 +965,38 @@ def update_save_MatchEnd():
 @app.route('/get_scorecarddata', methods=['GET'])
 def get_match_scorecard_data():
     try:
-        matchId = request.args.get('matchId')  # Get the 'matchId' parameter from the URL
+        matchId = request.args.get('matchId')  
         
-        # Validate matchId
+
         if not matchId or not matchId.isdigit():
             return jsonify({'error': 'Invalid matchId parameter'}), 400
 
         matchId = int(matchId)
         
-        conn = get_db_connection()  # Get database connection
+        conn = get_db_connection() 
         cursor = conn.cursor()
 
-        # Execute the stored procedure with matchId parameter
         cursor.execute("EXEC [msd].[Select_MatchDetailsForScoreCard] @MatchId=?", (matchId,))
 
-        # Initialize empty lists for batsmen, bowlers, and summary data
         team_data_availability = []
-
         team_a_batsman_details = []
         team_a_bowler_details = []
         team_a_summary_details = []
+        team_a_partnership = []
 
         team_b_batsman_details = []
         team_b_bowler_details = []
         team_b_summary_details = []
+        team_b_partnership = []
 
-        # Fetch the first result set: Team A & Team B availability (IsFirstInnings, IsSecondInnings)
         team_data_result = cursor.fetchall()
         for row in team_data_result:
             team_data_availability.append({
                 'IsFirstInnings': row.IsFirstInnings,
                 'IsSecondInnings': row.IsSecondInnings,
             })
-
-        # Move to the next result set for Team A batsman details
         cursor.nextset()  
 
-        # Fetch Team A batsman data
         batsman_result = cursor.fetchall()
         for row in batsman_result:
             team_a_batsman_details.append({
@@ -1020,9 +1010,8 @@ def get_match_scorecard_data():
                 'DismissalType': row.DismissalType
             })
 
-        cursor.nextset()  # Move to the next result set for Team A bowler data
+        cursor.nextset()  
 
-        # Fetch Team A bowler data
         bowler_result = cursor.fetchall()
         for row in bowler_result:
             team_a_bowler_details.append({
@@ -1035,9 +1024,8 @@ def get_match_scorecard_data():
                 'Average': row.Average
             })
 
-        cursor.nextset()  # Move to the next result set for Team A summary data
+        cursor.nextset()  
 
-        # Fetch Team A summary data (runs, overs, wickets, extras)
         summary_result = cursor.fetchall()
         for row in summary_result:
             team_a_summary_details.append({
@@ -1055,9 +1043,20 @@ def get_match_scorecard_data():
 
         if team_data_availability and team_data_availability[0]['IsSecondInnings']:
 
-            cursor.nextset()  # Move to the next result set for Team B batsman data
+            cursor.nextset() 
 
-        # Fetch Team B batsman data
+        partnership_result = cursor.fetchall()
+        for row in partnership_result:
+            team_a_partnership.append({
+                'PartnershipRuns': row.PartnershipRuns,
+                'PartnershipBalls': row.PartnershipBalls,
+                'BatsmanAName': row.BatsmanAName,
+                'BatsmanBName': row.BatsmanBName,
+                'WicketNumber': row.WicketNumber
+            })
+
+            cursor.nextset() 
+
         batsman_result = cursor.fetchall()
         for row in batsman_result:
             team_b_batsman_details.append({
@@ -1075,7 +1074,6 @@ def get_match_scorecard_data():
 
             cursor.nextset() 
 
-        # Fetch Team B bowler data
         bowler_result = cursor.fetchall()
         for row in bowler_result:
             team_b_bowler_details.append({
@@ -1092,7 +1090,6 @@ def get_match_scorecard_data():
 
             cursor.nextset() 
 
-        # Fetch Team B summary data (runs, overs, wickets, extras)
         summary_result = cursor.fetchall()
         for row in summary_result:
             team_b_summary_details.append({
@@ -1108,25 +1105,40 @@ def get_match_scorecard_data():
                 'TotalExtras': row.TotalExtras
             })
 
-        cursor.close()  # Close the cursor
-        conn.close()  # Close the connection
+            cursor.nextset() 
 
-        # Return the structured data as JSON
+        partnership_result = cursor.fetchall()
+        for row in partnership_result:
+            team_b_partnership.append({
+                'PartnershipRuns': row.PartnershipRuns,
+                'PartnershipBalls': row.PartnershipBalls,
+                'BatsmanAName': row.BatsmanAName,
+                'BatsmanBName': row.BatsmanBName,
+                'WicketNumber': row.WicketNumber
+            })
+
+        cursor.close()  
+        conn.close()  
+
+        print(team_b_summary_details)
+
         return jsonify({
             'TeamDataAvailability': team_data_availability,
             'TeamABatsmanDetails': team_a_batsman_details,
             'TeamABowlerDetails': team_a_bowler_details,
             'TeamASummaryDetails': team_a_summary_details,
+            'TeamAPartnershipDetails': team_a_partnership,
             'TeamBBatsmanDetails': team_b_batsman_details,
             'TeamBBowlerDetails': team_b_bowler_details,
-            'TeamBSummaryDetails': team_b_summary_details
+            'TeamBSummaryDetails': team_b_summary_details,
+            'TeamBPartnershipDetails': team_b_partnership,
         })
 
     except Exception as e:
-        # Handle exceptions and return an error response
+        
         error_message = f"Error fetching data: {str(e)}"
-        print(error_message)  # Log error to console
-        return jsonify({'error': error_message}), 500  # Return error message
+        print(error_message)  
+        return jsonify({'error': error_message}), 500  
 
 
 # CORS Headers Fix
