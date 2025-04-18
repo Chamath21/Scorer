@@ -9,7 +9,7 @@ import {
   ScrollView
 } from 'react-native';
 import axios from 'axios';
-import { BASE_URL } from '../App'; // Adjust based on your setup
+import { BASE_URL } from '../App'; 
 import { useNavigation } from '@react-navigation/native';
 import { MatchSeriesScreenNavigationProp } from '../types';
 

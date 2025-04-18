@@ -2,6 +2,7 @@ import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
 // Define all your routes here
 export type RootStackParamList = {
+  LogInScreen: undefined;
   MatchSeriesScreen: undefined;
   SeriesWiseMatchScreen: { seriesId: string };
   SelectTeamScreen: { seriesId: string | null; team: string };
@@ -23,6 +24,12 @@ export type RootStackParamList = {
 };
 
 // Type for navigation in each screen
+
+export type LogInScreenScreenNavigationProp = NativeStackNavigationProp<
+  RootStackParamList,
+  'LogInScreen'
+>;
+
 export type MatchSeriesScreenNavigationProp = NativeStackNavigationProp<
   RootStackParamList,
   'MatchSeriesScreen'

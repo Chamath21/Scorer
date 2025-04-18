@@ -15,7 +15,7 @@ type SelectBattersScreenRouteProp = RouteProp<RootStackParamList, 'SelectBatters
 
 const SelectBattersScreen: React.FC = () => {
   const route = useRoute<SelectBattersScreenRouteProp>();
-  const navigation1 = useNavigation<SelectBowlersScreenNavigationProp>();  // Correcting navigation prop
+  const navigation1 = useNavigation<SelectBowlersScreenNavigationProp>(); 
   const { matchId, BattingTeamId } = route.params;
 
   const [batters, setBatters] = useState<Batter[]>([]);
@@ -44,10 +44,8 @@ const SelectBattersScreen: React.FC = () => {
     const isSelected = selectedBatters.some((b) => b.playerId === batter.playerId);
 
     if (isSelected) {
-      // Unselect batter
       setSelectedBatters(selectedBatters.filter((b) => b.playerId !== batter.playerId));
     } else if (selectedBatters.length < 2) {
-      // Select batter, only if less than 2 are selected
       setSelectedBatters([...selectedBatters, batter]);
     }
   };
@@ -55,12 +53,11 @@ const SelectBattersScreen: React.FC = () => {
   const handleSelectBatsmanButtonClick = () => {
     console.log('Selected Batters:', selectedBatters);
     
-    // Extracting selectedBatterIds from selectedBatters
     const selectedBatterIds = selectedBatters.map((batter) => batter.playerId);
 
-    // Navigate to the SelectBowlersScreen
+
     navigation1.navigate('SelectBowlersScreen', { 
-      matchId: matchId.toString(),  // Convert matchId to string
+      matchId: matchId.toString(),  
       selectedBatterIds,
     });
   };

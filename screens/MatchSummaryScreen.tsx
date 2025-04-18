@@ -122,9 +122,8 @@ const MatchSummaryScreen = () => {
         <ScrollView style={styles.container}>
             <Text style={styles.title}>Match Summary</Text>
             <Text style={styles.toss}>{teamASummaryDetails.Toss}</Text>
-            <Text style={styles.result}>Result : Colombo Cricket Club Won By 10 Wickets</Text>
+            <Text style={styles.result}>Result : Royal College Won By 10 Wickets</Text>
 
-            {/* Team A Batting */}
             <Text style={styles.teamName}>{teamABatsmanDetails[0]?.TeamAName}</Text>
             <View style={styles.tableContainer}>
                 <View style={styles.tableHeader}>
@@ -149,7 +148,6 @@ const MatchSummaryScreen = () => {
                 ))}
             </View>
 
-            {/* Team B Bowling */}
             <Text style={styles.teamName}>{teamABowlerDetails[0]?.TeamBName}</Text>
             <View style={styles.tableContainer}>
                 <View style={styles.tableHeader}>
@@ -172,7 +170,6 @@ const MatchSummaryScreen = () => {
                 ))}
             </View>
 
-            {/* Team A Summary */}
             <View style={styles.matchStatsContainer}>
                 <View style={styles.matchStatsRow}>
                     <Text style={styles.matchStatsText}>
@@ -209,7 +206,6 @@ const MatchSummaryScreen = () => {
                         </View>
                     ))}
 
-            {/* Team B Batting */}
             <Text style={styles.teamName}>{teamBBatsmanDetails[0]?.TeamBName}</Text>
             <View style={styles.tableContainer}>
                 <View style={styles.tableHeader}>
@@ -234,7 +230,6 @@ const MatchSummaryScreen = () => {
                 ))}
             </View>
 
-            {/* Team A Bowling (2nd Innings) */}
             <Text style={styles.teamName}>{teamBBowlerDetails[0]?.TeamAName}</Text>
             <View style={styles.tableContainer}>
                 <View style={styles.tableHeader}>
@@ -257,7 +252,6 @@ const MatchSummaryScreen = () => {
                 ))}
             </View>
 
-            {/* Team B Summary */}
             {teamBSummaryDetails?.Runs !== undefined && (
                 <>
                     <View style={styles.matchStatsContainer}>

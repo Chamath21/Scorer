@@ -21,10 +21,8 @@ const dismissalOptions = [
   { label: 'Handled the ball', number: 11 }
 ];
 
-// Define route parameters
 type OutScreenRouteProp = RouteProp<RootStackParamList, 'OutScreen'>;
 
-// Define props type
 type OutScreenProps = {
   navigation: StackNavigationProp<RootStackParamList, 'OutScreen'>;
   route: OutScreenRouteProp;
@@ -34,12 +32,11 @@ const OutScreen: React.FC = () => {
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
   const route = useRoute<OutScreenRouteProp>();
 
-  // Extract parameters
   const { matchId, battingTeamId, striker, strikerName } = route.params;
 
   const [selectedDismissal, setSelectedDismissal] = useState<{ label: string; number: number } | null>(null);
 
-  // Handle missing striker data
+
   if (!striker) {
     return (
       <View style={styles.container}>
@@ -48,7 +45,6 @@ const OutScreen: React.FC = () => {
     );
   }
 
-  // Function to confirm dismissal
   const confirmDismissal = () => {
     if (!selectedDismissal) {
       Alert.alert('Error', 'Please select a dismissal type.');
@@ -73,7 +69,6 @@ const OutScreen: React.FC = () => {
   
               if (response.status === 200) {
                 Alert.alert('Success', 'Dismissal saved successfully');
-                // Navigate to SelectNewBatterScreen
                 navigation.navigate('SelectNewBatterScreen', {
                   matchId: matchId,
                   battingTeamId: battingTeamId,
@@ -110,7 +105,7 @@ const OutScreen: React.FC = () => {
   );
 };
 
-// Styles
+
 const styles = StyleSheet.create({
   container: { 
     flex: 1, 

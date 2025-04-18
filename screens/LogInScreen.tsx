@@ -12,16 +12,21 @@ import axios from 'axios';
 import { BASE_URL } from '../App';
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
-import { RootStackParamList } from '../types'; // 👈 Make sure this is defined
+import { RootStackParamList } from '../types';
 
 type NavigationProp = StackNavigationProp<RootStackParamList, 'UserProfileScreen'>;
 
 const LoginScreen: React.FC = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const navigation = useNavigation<NavigationProp>(); // ✅ hook inside component
+  const navigation = useNavigation<NavigationProp>(); 
 
   const handleLogin = async () => {
+    if (!email.trim() || !password.trim()) {
+      Alert.alert('Login Failed', 'Please enter both email and password.');
+      return; 
+    }
+  
     try {
       const response = await axios.post(
         `${BASE_URL}/login`,
@@ -32,18 +37,17 @@ const LoginScreen: React.FC = () => {
           },
         }
       );
-
-      if (response.status === 200 && response.data.userId) {
-        navigation.navigate('UserProfileScreen', { userId: response.data.userId });
-        
+  
+      if (response.status === 200 && response.data?.userId) {
+        navigation.navigate('MatchSeriesScreen');
       } else {
-        Alert.alert('Login Failed', response.data.error || 'Invalid credentials.');
+        Alert.alert('Login Failed', response.data?.error || 'Invalid credentials.');
       }
     } catch (error) {
-      console.error('Login Error:', error);
-      Alert.alert('Error', 'Unable to reach server. Check your internet connection and try again.');
+      Alert.alert('Login Failed', 'Invalid credentials.');
     }
   };
+  
 
   return (
     <ImageBackground

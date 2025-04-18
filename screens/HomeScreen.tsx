@@ -4,7 +4,7 @@ import { View, Text, StyleSheet, ImageBackground, TouchableOpacity } from 'react
 const HomeScreen = () => {
   return (
     <ImageBackground
-      source={require('../assets/bg.jpg')} // Ensure this image exists
+      source={require('../assets/bg.jpg')} 
       style={styles.background}
       resizeMode="cover"
     >
@@ -34,7 +34,7 @@ const styles = StyleSheet.create({
   },
   overlay: {
     width: '90%',
-    backgroundColor: 'rgba(0, 0, 0, 0.7)', // Dark transparent overlay
+    backgroundColor: 'rgba(0, 0, 0, 0.7)', 
     padding: 20,
     borderRadius: 10,
     alignItems: 'center',
@@ -42,7 +42,7 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 26,
     fontWeight: 'bold',
-    color: '#FFD700', // Cricket Yellow
+    color: '#FFD700', 
     marginBottom: 10,
   },
   subtitle: {
@@ -52,7 +52,7 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   button: {
-    backgroundColor: '#FFD700', // Cricket Yellow
+    backgroundColor: '#FFD700', 
     paddingVertical: 12,
     width: '100%',
     borderRadius: 8,

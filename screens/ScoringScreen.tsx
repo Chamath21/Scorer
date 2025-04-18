@@ -50,15 +50,13 @@ const MatchScoringScreen = () => {
   const [isEndInningsModalVisible, setisEndInningsModalVisible] = useState(false);
   const [IsInningsCompleted, setIsInningsCompleted] = useState<boolean | null>(null);
   const [MatchDecidedOvers, setMatchDecidedOvers] = useState<number | 0>(0);
+  const [IsByeLegBye, setIsByeLegBye]= useState<boolean>(false);
 
-  // State for batsmen and to track the striker
   const [batsmen, setBatsmen] = useState<Batsman[]>([]);
-  const [strikerIndex, setStrikerIndex] = useState<number>(0); // Track the striker's index
+  const [strikerIndex, setStrikerIndex] = useState<number>(0); 
 
-  // State for bowlers
   const [bowlers, setBowlers] = useState<Bowler[]>([]);
 
-  // State for balls in over
   const [ballsInOver, setBallsInOver] = useState<number>(0);
 
   const [bowlerOvers, setBowlerOvers] = useState<number>(0.0);
@@ -109,7 +107,7 @@ const MatchScoringScreen = () => {
     };
 
     fetchMatchData();
-  }, [matchId]); // Runs when matchId changes
+  }, [matchId]); 
 
   useEffect(() => {
     if (matchId) {
@@ -133,7 +131,15 @@ const MatchScoringScreen = () => {
   }, [matchId]);
 
   const rotateBatsmen = () => {
-    setStrikerIndex((prevIndex) => (prevIndex === 0 ? 1 : 0));
+    if(isBowlerExtra){
+
+    }else{
+      setStrikerIndex((prevIndex) => (prevIndex === 0 ? 1 : 0));
+    }
+    if(IsByeLegBye)
+    {
+      setStrikerIndex((prevIndex) => (prevIndex === 0 ? 1 : 0));
+    }
   };
 
   const addRuns = async (runs: number, isExtra: boolean = false) => {
@@ -143,7 +149,6 @@ const MatchScoringScreen = () => {
 
     let isBoundary = false;
 
-    // Update the batsman's stats only if it's not an extra
     if (!isExtra) {
       striker.runs += runs;
       striker.balls += 1;
@@ -157,8 +162,7 @@ const MatchScoringScreen = () => {
         striker.sixes += 1;
         isBoundary = true;
       }
-    } else {
-      // For extras, just update the runs (without increasing ball or striker stats)
+    } else if(isExtra || isBowlerExtra) {
       setExtras((prevExtras) => prevExtras + runs);
     }
 
@@ -167,10 +171,6 @@ const MatchScoringScreen = () => {
     }
     if (isBowlerExtra && extraType == 2) {
       striker.balls += 1;
-    }
-    else {
-      // For extras, just update the runs (without increasing ball or striker stats)
-      setExtras((prevExtras) => prevExtras + runs);
     }
 
     setBatsmen(updatedBatsmen);
@@ -212,8 +212,8 @@ const MatchScoringScreen = () => {
         runs: runs,
         battingTeamId: striker.battingTeamId,
         bowlingTeamId: currentBowler.bowlingTeamId,
-        isExtra: isExtra, // Whether it's an extra
-        extraRuns: isExtra ? runs : 0, // Only pass extra runs if isExtra is true
+        isExtra: isExtra,
+        extraRuns: isExtra ? runs : 0, 
         isBoundary: isBoundary,
         overs: overs,
         ballsInOver: ballsInOver,
@@ -238,6 +238,9 @@ const MatchScoringScreen = () => {
     }
 
     fetchMatchEndData();
+    setIsByeLegBye(false);
+    setIsBowlerExtra(false);
+    setIsExtra(false)
 
   };
 
@@ -249,7 +252,7 @@ const MatchScoringScreen = () => {
         params: { matchId },
       });
 
-      console.log('API Response:', response.data);  // Add this line to debug API response
+      console.log('API Response:', response.data);  
 
       if (response.data.IsMatchOver == true) {
         setisEndMatchModalVisible(true);
@@ -274,22 +277,24 @@ const MatchScoringScreen = () => {
 
     switch (label) {
       case 'WD':
-        currentExtraType = 1; // WD gets the value 1
+        currentExtraType = 1; 
         addRuns(1, true); 
         break;
       case 'NB':
-        currentExtraType = 2; // NB gets the value 2
+        currentExtraType = 2; 
         addRuns(1, true); 
         break;
       case 'Bye':
-        currentExtraType = 3; // Bye gets the value 3
+        currentExtraType = 3; 
         setIsBowlerExtra(false);
         addRuns(1, true); 
+        setIsByeLegBye(true)
         break;
       case 'LB':
-        currentExtraType = 4; // LB gets the value 4
+        currentExtraType = 4; 
         setIsBowlerExtra(false);
         addRuns(1, true); 
+        setIsByeLegBye(true)
         break;
       case 'Out':
         handleWicket();
@@ -299,25 +304,23 @@ const MatchScoringScreen = () => {
         break;
     }
 
-    // Now pass the currentExtraType directly to addRuns
-    setExtraType(currentExtraType);  // Update the state
-    // Add runs for the selected extra
+
+    setExtraType(currentExtraType);
   };
 
 
   const handleWicket = () => {
     if (batsmen.length > 0) {
       const striker = batsmen[strikerIndex];
-      const nonStriker = batsmen[strikerIndex === 0 ? 1 : 0];  // Get the non-striker
+      const nonStriker = batsmen[strikerIndex === 0 ? 1 : 0];  
 
-      const battingTeamId = striker.battingTeamId; // Assuming the first batsman belongs to the batting team
-      // Pass the batsmen and striker to OutScreen
+      const battingTeamId = striker.battingTeamId; 
       navigation.navigate('OutScreen', {
         matchId: matchId,
         battingTeamId: battingTeamId,
         striker: striker.batsmanId,
         strikerName: striker.batsmanName,
-        nonStriker: nonStriker.batsmanId,  // Pass the non-striker along with the striker
+        nonStriker: nonStriker.batsmanId,  
       });
     }
   };
@@ -353,9 +356,9 @@ const MatchScoringScreen = () => {
   };
 
   const handleOptionSelect = (option: number) => {
-    console.log(option); // Handle each option here
-    setIsModalVisible(false); // Close the modal after selecting an option
-    // You can perform different actions based on the selected option
+    console.log(option); 
+    setIsModalVisible(false); 
+
     if (option === 1) {
       // Handle abandon logic
     } else if (option === 2) {
@@ -372,7 +375,6 @@ const MatchScoringScreen = () => {
     try {
       await axios.post(`${BASE_URL}/endInnings`, { matchId });
       console.log('Innings ended');
-      // navigation.navigate('MatchSummary');
     } catch (error) {
       console.error('Error ending innings:', error);
       Alert.alert('Error', 'An error occurred while ending the innings.');
@@ -390,9 +392,8 @@ const MatchScoringScreen = () => {
 
   const handleMatchEnd = async () => {
     try {
-      // Sending matchId in the body of the POST request
       const response = await axios.post(`${BASE_URL}/save_MatchEnd`, {
-        matchId: matchId, // Sending matchId as part of the body
+        matchId: matchId, 
       });
   
       if (response.status === 200) {
@@ -478,6 +479,8 @@ const MatchScoringScreen = () => {
             <TouchableOpacity key={num} style={styles.button} onPress={() => {
               setIsBowlerExtra(false);
               addRuns(num)
+              setIsExtra(false)
+              setIsBowlerExtra(false)
             }
             }>
               <Text style={styles.buttonText}>{num}</Text>
@@ -517,9 +520,6 @@ const MatchScoringScreen = () => {
                 <TouchableOpacity style={styles.modalButton} onPress={endInnings}>
                   <Text style={styles.buttonText}>Yes</Text>
                 </TouchableOpacity>
-                <TouchableOpacity style={styles.modalButton} onPress={toggleModalIsInningsEnded}>
-                  <Text style={styles.buttonText}>No</Text>
-                </TouchableOpacity>
               </View>
             </View>
           </View>
@@ -537,9 +537,6 @@ const MatchScoringScreen = () => {
               <View style={styles.modalButtonContainer}>
                 <TouchableOpacity style={styles.modalButton} onPress={endMatch}>
                   <Text style={styles.buttonText}>Yes</Text>
-                </TouchableOpacity>
-                <TouchableOpacity style={styles.modalButton} onPress={toggleModalisEndMatchEnded}>
-                  <Text style={styles.buttonText}>No</Text>
                 </TouchableOpacity>
               </View>
             </View>
@@ -672,17 +669,17 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   striker: {
-    backgroundColor: '#808080', // Gray background for the striker
+    backgroundColor: '#808080', 
   },
   strikerText: {
-    color: 'white', // White text for the striker
+    color: 'white', 
   },
   button: {
     padding: 10,
     margin: 5,
     backgroundColor: '#f1f1f1',
     borderRadius: 5,
-    width: 50,  // Set a consistent width for each button
+    width: 50, 
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -691,7 +688,7 @@ const styles = StyleSheet.create({
     margin: 5,
     backgroundColor: '#f1f1f1',
     borderRadius: 5,
-    width: 200,  // Set a consistent width for each button
+    width: 200,  
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -711,12 +708,12 @@ const styles = StyleSheet.create({
   },
   buttonsContainer: {
     flexDirection: 'row',
-    justifyContent: 'space-evenly',  // Evenly distribute buttons
+    justifyContent: 'space-evenly', 
     marginBottom: 10,
   },
   extraButtonsContainer: {
     flexDirection: 'row',
-    justifyContent: 'space-evenly',  // Evenly distribute extra buttons
+    justifyContent: 'space-evenly', 
   },
   modalOverlay: {
     flex: 1,

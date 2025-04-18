@@ -26,15 +26,16 @@ import ProfileUpdateScreen from './screens/ProfileUpdateScreen';
 
 const Stack = createStackNavigator();
 
-export const BASE_URL = 'http://192.168.1.3:5000';
+export const BASE_URL = 'http://192.168.1.2:5000';
 
 const App = () => {
-  const [isLoggedIn, setIsLoggedIn] = useState(false); // ⬅️ Login state
+  const [isLoggedIn, setIsLoggedIn] = useState(false); 
 
   return (
     <NavigationContainer>
       <Stack.Navigator screenOptions={{ headerShown: false }}>
             <Stack.Screen name="MatchSeriesScreen" component={MatchSeriesScreen} />
+            <Stack.Screen name="LogInScreen" component={LoginScreen} />
             <Stack.Screen name="SeriesWiseMatchScreen" component={SeriesWiseMatchScreen} />
             <Stack.Screen name="SelectTeamScreen" component={SelectTeamScreen} />
             <Stack.Screen name="AfterSelectAddMatchDetailsScreen" component={AfterSelectAddMatchDetailsScreen} />

@@ -3,30 +3,25 @@ import { View, Text, TouchableOpacity, StyleSheet, Modal, Alert } from 'react-na
 import { useRoute, useNavigation, RouteProp } from '@react-navigation/native';
 import axios from 'axios';
 import { BASE_URL } from '../App';
-import {RootStackParamList } from '../types'; // Correctly import types
+import {RootStackParamList } from '../types'; 
 
 type EndInningsScreenRouteProp = RouteProp<RootStackParamList, 'MatchTossScreen'>;
 
 const EndInningsScreen = () => {
-  const route = useRoute<EndInningsScreenRouteProp>(); // Correctly typed useRoute
-  //const navigation = useNavigation<EndInningsScreenNavigationProp>(); // Correctly typed useNavigation
+  const route = useRoute<EndInningsScreenRouteProp>(); 
 
-  const { matchId } = route.params; // matchId from the route params
+  const { matchId } = route.params;
 
   const [isModalVisible, setIsModalVisible] = useState(false);
 
-  // Toggle Modal Visibility
   const toggleModal = () => {
     setIsModalVisible((prev) => !prev);
   };
 
-  // End the innings and redirect to the summary screen
   const endInnings = async () => {
     try {
-      // Send request to the backend to end the innings
       await axios.post(`${BASE_URL}/endInnings`, { matchId });
       console.log('Innings ended successfully');
-      //navigation.navigate('MatchSummary'); // Navigate to the Match Summary screen
     } catch (error) {
       console.error('Error ending innings:', error);
       Alert.alert('Error', 'An error occurred while ending the innings.');
@@ -37,12 +32,10 @@ const EndInningsScreen = () => {
     <View style={styles.container}>
       <Text style={styles.headerText}>End Innings</Text>
       
-      {/* Button to trigger the modal */}
       <TouchableOpacity style={styles.button} onPress={toggleModal}>
         <Text style={styles.buttonText}>End Innings</Text>
       </TouchableOpacity>
 
-      {/* End Innings Modal */}
       <Modal
         visible={isModalVisible}
         transparent={true}

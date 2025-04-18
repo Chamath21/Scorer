@@ -107,61 +107,74 @@ const SeriesWiseMatchScreen = () => {
 
   const handleMatchPress = (match: Match) => {
     setSelectedMatch(match);
-    setIsModalVisible(true);  // Show modal when match is clicked
+    setIsModalVisible(true);  
   };
 
   const handleResumeScoring = () => {
     if (selectedMatch) {
-      // Navigate to ScoringScreen
       navigation.navigate('ScoringScreen', { matchId: selectedMatch.MatchId });
-      setIsModalVisible(false);  // Close modal after navigating
+      setIsModalVisible(false);  
     }
   };
 
   const handleStartMatch = () => {
     if (selectedMatch) {
-      // Navigate to the SelectTeamsScreen and pass the MatchId parameter
       navigation1.navigate('MatchTossScreen', { matchId: selectedMatch.MatchId });
-  
-      // Close the modal after navigating
       setIsModalVisible(false);
     }
   };
 
-  const handleDeleteMatch = async () => {
-    if (selectedMatch) {
-      setIsDeleting(true);  // Show loading state
-      try {
-        const response = await fetch(`${BASE_URL}/deleteMatchById`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
+  const handleDeleteMatch = () => {
+    if (!selectedMatch) return;
+  
+    Alert.alert(
+      'Confirm Deletion',
+      'Are you sure you want to delete this match?',
+      [
+        {
+          text: 'Cancel',
+          style: 'cancel',
+        },
+        {
+          text: 'Delete',
+          style: 'destructive',
+          onPress: async () => {
+            setIsDeleting(true);
+            try {
+              const response = await fetch(`${BASE_URL}/deleteMatchById`, {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ matchId: selectedMatch.MatchId }),
+              });
+  
+              const result = await response.json();
+              if (response.ok && result.message === 'Delete successful') {
+                Alert.alert('Success', 'Match deleted successfully');
+                const updatedMatches = groupedMatches.Upcoming.filter(
+                  (match) => match.MatchId !== selectedMatch.MatchId
+                );
+                setGroupedMatches((prevState) => ({
+                  ...prevState,
+                  Upcoming: updatedMatches,
+                }));
+              } else {
+                Alert.alert('Error', result.error || 'Failed to delete match');
+              }
+            } catch (error) {
+              Alert.alert('Error', 'Something went wrong');
+            } finally {
+              setIsDeleting(false);
+              setIsModalVisible(false);
+            }
           },
-          body: JSON.stringify({ matchId: selectedMatch.MatchId }),
-        });
-
-        const result = await response.json();
-        if (response.ok && result.message === 'Delete successful') {
-          Alert.alert('Success', 'Match deleted successfully');
-          // Remove the deleted match from the list
-          const updatedMatches = groupedMatches.Upcoming.filter(
-            (match) => match.MatchId !== selectedMatch.MatchId
-          );
-          setGroupedMatches((prevState) => ({
-            ...prevState,
-            Upcoming: updatedMatches,
-          }));
-        } else {
-          Alert.alert('Error', result.error || 'Failed to delete match');
-        }
-      } catch (error) {
-        Alert.alert('Error', 'Something went wrong');
-      } finally {
-        setIsDeleting(false); // Hide loading state
-        setIsModalVisible(false); // Close modal after action
-      }
-    }
+        },
+      ],
+      { cancelable: false }
+    );
   };
+  
 
   return (
     <View style={styles.container}>
@@ -224,7 +237,7 @@ const SeriesWiseMatchScreen = () => {
           }}
           style={styles.modalButton}
         >
-          <Text style={styles.modalButtonText}>View Summary</Text>
+          <Text style={styles.modalButtonText}>View Match</Text>
         </TouchableOpacity>
       ) : (
         <>
@@ -272,7 +285,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(30, 30, 30, 0.8)' 
   },
   tabText: { 
-    color: '#fff',  // Set text color to white
+    color: '#fff', 
     fontWeight: 'bold' 
   },
   matchCard: { 
@@ -297,13 +310,13 @@ const styles = StyleSheet.create({
   matchTitle: { 
     fontSize: 18, 
     fontWeight: 'bold', 
-    color: '#ffffff',  // Set text color to gold
+    color: '#ffffff', 
     textAlign: 'center', 
     flex: 1 
   },
   matchInfo: { 
     fontSize: 14, 
-    color: '#ddd',  // Set text color to light gray
+    color: '#ddd',  
     marginTop: 5, 
     textAlign: 'center' 
   },
@@ -321,7 +334,7 @@ const styles = StyleSheet.create({
   },
   emptyText: { 
     textAlign: 'center', 
-    color: '#bbb',  // Set text color to light gray
+    color: '#bbb',  
     marginTop: 20 
   },
   addMatchButton: { 
@@ -334,7 +347,7 @@ const styles = StyleSheet.create({
   addMatchText: { 
     fontSize: 18, 
     fontWeight: 'bold', 
-    color: '#ffffff'  // Set text color to black
+    color: '#ffffff'  
   },
   modalBackground: {
     flex: 1,

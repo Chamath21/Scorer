@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, Modal, TouchableOpacity, Image, Alert } from 'r
 import { useRoute, useNavigation } from '@react-navigation/native';
 import { RouteProp } from '@react-navigation/native';
 import axios from 'axios';
-import { RootStackParamList, SelectBattersScreenNavigationProp } from '../types'; // Adjust path if needed
+import { RootStackParamList, SelectBattersScreenNavigationProp } from '../types'; 
 import { BASE_URL } from '../App';
 
 type MatchTossScreenRouteProp = RouteProp<RootStackParamList, 'MatchTossScreen'>;

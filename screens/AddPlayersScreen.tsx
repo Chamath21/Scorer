@@ -1,7 +1,7 @@
 import moment from 'moment';
 import React, { useState, useEffect } from 'react';
 import { View, Text, TextInput, FlatList, TouchableOpacity, Modal, Button, Alert, Switch, StyleSheet } from 'react-native';
-import DateTimePickerModal from 'react-native-modal-datetime-picker'; // Import the DateTimePickerModal
+import DateTimePickerModal from 'react-native-modal-datetime-picker'; 
 import { BASE_URL } from '../App';
 
 type Player = {
@@ -135,7 +135,6 @@ const AddPlayersScreen: React.FC<AddPlayersScreenProps> = ({ route, navigation }
 
     return (
         <View style={styles.container}>
-            {/* Search Bar */}
             <TextInput
                 style={styles.searchBar}
                 placeholder="Search players"
@@ -144,21 +143,18 @@ const AddPlayersScreen: React.FC<AddPlayersScreenProps> = ({ route, navigation }
                 onChangeText={handleSearch}
             />
 
-            {/* Players List */}
             <FlatList
                 data={filteredPlayers}
                 renderItem={renderPlayer}
                 keyExtractor={item => item.PlayerId}
                 contentContainerStyle={styles.list}
-                extraData={filteredPlayers} // Ensure re-render when filtered
+                extraData={filteredPlayers} 
             />
 
-            {/* Add Player Button */}
             <TouchableOpacity style={styles.addButton} onPress={() => setShowModal(true)}>
                 <Text style={styles.addButtonText}>+</Text>
             </TouchableOpacity>
 
-            {/* Modal for Adding a Player */}
             <Modal
                 visible={showModal}
                 animationType="slide"
@@ -176,7 +172,6 @@ const AddPlayersScreen: React.FC<AddPlayersScreenProps> = ({ route, navigation }
                             onChangeText={setNewPlayerName}
                         />
 
-                        {/* Batting Style Selection */}
                         <Text style={styles.modalLabel}>Batting Style</Text>
                         <View style={styles.buttonGroup}>
                             <TouchableOpacity
@@ -193,7 +188,6 @@ const AddPlayersScreen: React.FC<AddPlayersScreenProps> = ({ route, navigation }
                             </TouchableOpacity>
                         </View>
 
-                        {/* Bowling Style Selection */}
                         <Text style={styles.modalLabel}>Bowling Style</Text>
                         <View style={styles.buttonGroup}>
                             <TouchableOpacity
@@ -210,7 +204,6 @@ const AddPlayersScreen: React.FC<AddPlayersScreenProps> = ({ route, navigation }
                             </TouchableOpacity>
                         </View>
 
-                        {/* Wicketkeeper Toggle */}
                         <Text style={styles.modalLabel}>Is Wicketkeeper?</Text>
                         <Switch
                             value={isWicketKeeper}

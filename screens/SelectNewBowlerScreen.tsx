@@ -52,23 +52,22 @@ const SelectNewBowlersScreen = () => {
 
   const fetchInningsCompletionStatus = async () => {
     try {
-      // Wait for 6 seconds before making the API call
       await new Promise(resolve => setTimeout(resolve, 1000));
   
       const response = await axios.get(`${BASE_URL}/get_IsInningsCompleted`, {
         params: { matchId },
       });
   
-      console.log('API Response:', response.data);  // Add this line to debug API response
+      console.log('API Response:', response.data);  
   
       setMatchDecidedOvers(response.data.MatchDecidedOvers || 0);
       setNowOvers(response.data.CurrentlyBowledOvers || 0);
   
-      console.log('MatchDecidedOvers:', MatchDecidedOvers); // Check the value of MatchDecidedOvers
-      console.log('NowOvers:', nowOvers); // Check the value of nowOvers
+      console.log('MatchDecidedOvers:', MatchDecidedOvers);
+      console.log('NowOvers:', nowOvers); 
   
       if (response.data.MatchDecidedOvers === response.data.CurrentlyBowledOvers) {
-        setIsEndInningsModalVisible(true); // You can enable this line if necessary
+        setIsEndInningsModalVisible(true);
       } else {
         setIsEndInningsModalVisible(false);
       }
@@ -86,7 +85,7 @@ const SelectNewBowlersScreen = () => {
         params: { matchId },
       });
   
-      console.log('API Response:', response.data);  // Add this line to debug API response
+      console.log('API Response:', response.data); 
 
       const isMatchCompleted = response.data;
 
@@ -110,7 +109,7 @@ const SelectNewBowlersScreen = () => {
         params: { matchId },
       });
   
-      console.log('API Response:', response.data);  // Add this line to debug API response
+      console.log('API Response:', response.data);  
 
       if(response.data == true){
         navigation2.navigate('MatchSummaryScreen', { matchId: Number(matchId)});
@@ -154,9 +153,8 @@ const SelectNewBowlersScreen = () => {
 
   const handleInningsEnd = async () => {
     try {
-      // Sending matchId in the body of the POST request
       const response = await axios.post(`${BASE_URL}/save_inningsEnd`, {
-        matchId: matchId, // Sending matchId as part of the body
+        matchId: matchId, 
       });
   
       if (response.status === 200) {
@@ -172,9 +170,8 @@ const SelectNewBowlersScreen = () => {
 
   const handleMatchEnd = async () => {
     try {
-      // Sending matchId in the body of the POST request
       const response = await axios.post(`${BASE_URL}/save_MatchEnd`, {
-        matchId: matchId, // Sending matchId as part of the body
+        matchId: matchId, 
       });
   
       if (response.status === 200) {
@@ -261,9 +258,6 @@ const SelectNewBowlersScreen = () => {
               <TouchableOpacity style={styles.modalButton} onPress={endInnings}>
                 <Text style={styles.buttonText}>Yes</Text>
               </TouchableOpacity>
-              <TouchableOpacity style={styles.modalButton} onPress={toggleModalIsInningsEnded}>
-                <Text style={styles.buttonText}>No</Text>
-              </TouchableOpacity>
             </View>
           </View>
         </View>
@@ -281,9 +275,6 @@ const SelectNewBowlersScreen = () => {
             <View style={styles.modalButtonContainer}>
               <TouchableOpacity style={styles.modalButton} onPress={endMatch}>
                 <Text style={styles.buttonText}>Yes</Text>
-              </TouchableOpacity>
-              <TouchableOpacity style={styles.modalButton} onPress={toggleModalisEndMatchEnded}>
-                <Text style={styles.buttonText}>No</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -410,6 +401,7 @@ const styles = StyleSheet.create({
     padding: 10,
     borderRadius: 5,
     marginHorizontal: 50,
+    textAlign: 'center',
   },
   buttonText: {
     fontSize: 16,

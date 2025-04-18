@@ -2,12 +2,12 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, FlatList, ScrollView } from 'react-native';
 import { useRoute } from '@react-navigation/native';
 import { RouteProp } from '@react-navigation/native';
-import { RootStackParamList } from '../types'; // Import the param list type
+import { RootStackParamList } from '../types'; 
 import { BASE_URL } from '../App';
 
 type ScoreCardScreenRouteProp = RouteProp<RootStackParamList, 'ScoreCardScreen'>;
 
-// Define the types for batting and bowling details
+
 type BattingDetail = {
     TeamAName: string;
     BatsmanName: string;
@@ -53,7 +53,7 @@ type SecondBowlingDetail = {
 
 const ScoreCardScreen = () => {
     const route = useRoute<ScoreCardScreenRouteProp>();
-    const { matchId } = route.params; // matchId from the route params
+    const { matchId } = route.params;
     const [teamABatsmanDetails, setTeamABatsmanDetails] = useState<BattingDetail[]>([]);
     const [teamABowlerDetails, setTeamABowlerDetails] = useState<BowlingDetail[]>([]);
     const [teamASummaryDetails, setTeamASummaryDetails] = useState<any>({});
@@ -63,7 +63,7 @@ const ScoreCardScreen = () => {
     const [TeamDataAvailability, setTeamDataAvailability] = useState<any>({});
     const [loading, setLoading] = useState<boolean>(true);
 
-    // Fetch data when the component mounts
+
     useEffect(() => {
         const fetchData = async () => {
             try {
